@@ -1,0 +1,7 @@
+な = read_line{}
+に = read_line{}
+
+ぬ = to_int{な} + to_int{に}
+* ぬ > 0 ->
+	write_line{ぬ}, --ぬ
+.

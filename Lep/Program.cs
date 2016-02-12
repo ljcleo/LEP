@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Resources;
+using System.Text;
 using System.Windows.Forms;
 
 [assembly: NeutralResourcesLanguage("zh-CN")]
@@ -18,6 +19,8 @@ namespace Lep
         [STAThread]
         static void Main(string[] args)
         {
+            Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
+
             if (args.Length == 0)
             {
                 using (OpenFileDialog dialog = new OpenFileDialog())
@@ -45,7 +48,7 @@ namespace Lep
                     return;
                 }
             }
-
+            
             _lexer = new Lexer(_reader);
             _parser = new Parser(_lexer);
             Natives.Append(_environment);

@@ -1,0 +1,7 @@
+﻿甲 = read_line{}
+乙 = read_line{}
+
+总和 = to_int{甲} + to_int{乙}
+* 总和 > 0 ->
+	write_line{总和}, --总和
+.

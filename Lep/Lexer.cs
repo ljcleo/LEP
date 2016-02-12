@@ -11,9 +11,23 @@ namespace Lep
     {
         public static readonly string SpacePattern = @"(?<space>\s*)";
         public static readonly string CommentPattern = @"(?<comment>//.*)";
-        public static readonly string NumberPattern = @"(?<number>[0-9]+)";
+        public static readonly string NumberPattern = @"(?<number>\d+)";
         public static readonly string StringPattern = @"(?<string>""(\\""|\\\\|\\n|[^""])*""|@""(""""|[^""])*"")";
-        public static readonly string IdentifierPattern = @"(?<identifier>[A-Z_a-z][A-Z_a-z0-9]*|\+=|\-=|\*=|\/=|%=|&&=|\|\|=|\+\+|\-\-|==|>=|<=|!=|&&|\|\||->|!!|:!|[~!@#\$%\^&\*\(\)\-_\+=\|\\\}\]\{\[:;<,>\.\?\/""])";
+        
+        public static readonly string LatinPattern = @"\w\p{IsLatin-1Supplement}\p{IsLatinExtended-A}\p{IsLatinExtended-B}";
+        public static readonly string CyrillicPattern = @"\p{IsCyrillic}\p{IsCyrillicSupplement}";
+        public static readonly string ArabicPattern = @"\p{IsArabic}";
+        public static readonly string KoreanPattern = @"\p{IsHangulJamo}\p{IsHangulCompatibilityJamo}";
+        public static readonly string JapanesePattern = @"\p{IsHiragana}\p{IsKatakana}";
+        public static readonly string ChinesePattern = @"\p{IsCJKUnifiedIdeographs}";
+
+        public static readonly string SupportedCharPattern = LatinPattern + CyrillicPattern + ArabicPattern + KoreanPattern + JapanesePattern + ChinesePattern;
+        public static readonly string NamePattern = "[" + SupportedCharPattern + @"-[\d]][" + SupportedCharPattern + "]*";
+
+        public static readonly string DoubleCharOperatorPattern = @"\+=|-=|\*=|/=|%=|&&=|\|\|=|\+\+|--|==|>=|<=|!=|&&|\|\||->|!!|:!";
+        public static readonly string SingleCharOperatorPattern = @"[\p{P}\p{S}]";
+        public static readonly string IdentifierPattern = @"(?<identifier>" + NamePattern + "|" + DoubleCharOperatorPattern + "|" + SingleCharOperatorPattern + ")";
+
         public static readonly string Pattern = SpacePattern + "(" + CommentPattern + "|" + NumberPattern + "|" + StringPattern + "|" + IdentifierPattern + ")?";
 
         private Regex _regex = new Regex(Pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -58,7 +72,7 @@ namespace Lep
             try { line = _reader.ReadLine(); }
             catch (IOException e) { throw new ParseException(e); }
 
-            if (line == null)
+            if (line == null || line == "\u001a")
             {
                 _hasMore = false;
                 return;
