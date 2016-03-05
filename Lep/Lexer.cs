@@ -35,6 +35,9 @@ namespace Lep
         private List<Token> _tokenList = new List<Token>();
         private bool _hasMore = true;
 
+        private Dictionary<string, string> _definitionList = new Dictionary<string, string>();
+        private Dictionary<string, string> _localizationList = new Dictionary<string, string>();
+
         private TextReader _reader;
         private int _currentLine = 0;
 
@@ -78,11 +81,43 @@ namespace Lep
                 return;
             }
 
+            string nolp = DeleteLeftPad(line);
+            if (nolp.StartsWith("--"))
+            {
+                if (nolp.StartsWith("--define"))
+                {
+                }
+                else if (nolp.StartsWith("--undef"))
+                {
+                }
+                else if (nolp.StartsWith("--ifdef"))
+                {
+                }
+                else if (nolp.StartsWith("--ifndef"))
+                {
+                }
+                else if (nolp.StartsWith("--local"))
+                {
+                }
+                else if (nolp.StartsWith("--nolocal"))
+                {
+                }
+                else throw new ParseException("bad control command at line " + _currentLine);
+
+                ReadLine();
+                return;
+            }
+
             ++_currentLine;
+            ParseString(line);
+        }
+
+        protected void ParseString(string str)
+        {
             int pos = 0;
 
-            Match next = _regex.Match(line);
-            while (pos < line.Length)
+            Match next = _regex.Match(str);
+            while (pos < str.Length)
             {
                 if (next.Success && next.Index == pos)
                 {
@@ -107,11 +142,35 @@ namespace Lep
 
                 if (match.Groups[3].Success) next = new NumberToken(_currentLine, Int32.Parse(match.Groups[3].Value, NumberStyles.None, CultureInfo.InvariantCulture));
                 else if (match.Groups[4].Success) next = new StringToken(_currentLine, Translate(match.Groups[4].Value));
-                else if (match.Groups[5].Success) next = new IdentifierToken(_currentLine, match.Groups[5].Value);
+                else if (match.Groups[5].Success)
+                {
+                    string id = match.Groups[5].Value;
+
+                    if (_definitionList.ContainsKey(id))
+                    {
+                        ParseString(_definitionList[id]);
+                        return;
+                    }
+                    else if (_localizationList.ContainsKey(id))
+                    {
+                        ParseString(_localizationList[id]);
+                        return;
+                    }
+
+                    next = new IdentifierToken(_currentLine, id);
+                }
                 else return;
 
                 _tokenList.Add(next);
             }
+        }
+
+        protected static string DeleteLeftPad(string str)
+        {
+            int pos = 0;
+            while (pos < str.Length && (str[pos] == ' ' || str[pos] == '\n' || str[pos] == 't' || str[pos] == '\u001a')) ++pos;
+
+            return str.Substring(pos);
         }
 
         protected static string Translate(string str)
