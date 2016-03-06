@@ -37,6 +37,7 @@ namespace Lep
 
         private Dictionary<string, string> _definitionList = new Dictionary<string, string>();
         private Dictionary<string, string> _localizationList = new Dictionary<string, string>();
+        private bool _skip = false;
 
         private TextReader _reader;
         private int _currentLine = 0;
@@ -84,32 +85,46 @@ namespace Lep
             string nolp = DeleteLeftPad(line);
             if (nolp.StartsWith("--"))
             {
-                if (nolp.StartsWith("--define"))
-                {
-                }
-                else if (nolp.StartsWith("--undef"))
-                {
-                }
-                else if (nolp.StartsWith("--ifdef"))
-                {
-                }
-                else if (nolp.StartsWith("--ifndef"))
-                {
-                }
-                else if (nolp.StartsWith("--local"))
-                {
-                }
-                else if (nolp.StartsWith("--nolocal"))
-                {
-                }
-                else throw new ParseException("bad control command at line " + _currentLine);
+                string[] parts = nolp.Split(new char[] { ' ', '\t', '\n', '\u001a' });
 
-                ReadLine();
+                switch (parts[0])
+                {
+                    case "--define":
+                        string[] value = null;
+
+                        parts.CopyTo(value, 2);
+                        if (value.Length == 0) value = new string[] { "1" };
+
+                        _definitionList.Add(parts[1], string.Concat(value));
+                        break;
+                    case "--undef":
+                        if (!_definitionList.Remove(parts[1])) throw new ParseException("bad undef command at line " + _currentLine);
+                        break;
+                    case "--ifdef":
+                        if (_definitionList.ContainsKey(parts[1])) _skip = true;
+                        break;
+                    case "--ifndef":
+                        if (!_definitionList.ContainsKey(parts[1])) _skip = true;
+                        break;
+                    case "--if":
+                        if (_definitionList.ContainsKey(parts[1]) && _definitionList[parts[1]] != "0") _skip = true;
+                        break;
+                    case "--endif":
+                        if (_skip) _skip = false;
+                        else throw new ParseException("bad endif command at line " + _currentLine);
+
+                        break;
+                    case "--local":
+                        throw new ParseException("not implemented command at line " + _currentLine);
+                    default:
+                        throw new ParseException("bad control command at line " + _currentLine);
+                }
+                
                 return;
             }
 
             ++_currentLine;
-            ParseString(line);
+            if (!_skip) ParseString(line);
         }
 
         protected void ParseString(string str)
@@ -168,7 +183,7 @@ namespace Lep
         protected static string DeleteLeftPad(string str)
         {
             int pos = 0;
-            while (pos < str.Length && (str[pos] == ' ' || str[pos] == '\n' || str[pos] == 't' || str[pos] == '\u001a')) ++pos;
+            while (pos < str.Length && (str[pos] == ' ' || str[pos] == '\n' || str[pos] == '\t' || str[pos] == '\u001a')) ++pos;
 
             return str.Substring(pos);
         }
