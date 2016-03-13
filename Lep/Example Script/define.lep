@@ -1,0 +1,22 @@
+--define A 10
+--define B 20
+
+write_line{A + B}
+
+--define PR write_line
+
+PR{"ZA"}
+
+--define DEBUG
+
+--ifdef DEBUG
+PR{"1215!"}
+--endif
+
+--ifndef DEBUG
+PR{"2628!"}
+--endif
+
+--undef PR
+
+PR{"ZA!"}

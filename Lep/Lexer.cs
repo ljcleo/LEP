@@ -37,6 +37,7 @@ namespace Lep
 
         private Dictionary<string, string> _definitionList = new Dictionary<string, string>();
         private Dictionary<string, string> _localizationList = new Dictionary<string, string>();
+        private int _layer = 0;
         private bool _skip = false;
 
         private TextReader _reader;
@@ -90,28 +91,36 @@ namespace Lep
                 switch (parts[0])
                 {
                     case "--define":
-                        string[] value = null;
+                        StringBuilder builder = new StringBuilder();
 
-                        parts.CopyTo(value, 2);
-                        if (value.Length == 0) value = new string[] { "1" };
+                        if (parts.Length == 2) builder.Append("1");
+                        else for (int i = 2; i < parts.Length; i++) builder.Append(parts[i]);
 
-                        _definitionList.Add(parts[1], string.Concat(value));
+                        _definitionList.Add(parts[1], builder.ToString());
                         break;
                     case "--undef":
                         if (!_definitionList.Remove(parts[1])) throw new ParseException("bad undef command at line " + _currentLine);
                         break;
                     case "--ifdef":
-                        if (_definitionList.ContainsKey(parts[1])) _skip = true;
+                        if (!_definitionList.ContainsKey(parts[1])) _skip = true;
+                        ++_layer;
+
                         break;
                     case "--ifndef":
-                        if (!_definitionList.ContainsKey(parts[1])) _skip = true;
+                        if (_definitionList.ContainsKey(parts[1])) _skip = true;
+                        ++_layer;
+
                         break;
                     case "--if":
-                        if (_definitionList.ContainsKey(parts[1]) && _definitionList[parts[1]] != "0") _skip = true;
+                        if (!_definitionList.ContainsKey(parts[1]) || _definitionList[parts[1]] == "0") _skip = true;
+                        ++_layer;
+
                         break;
                     case "--endif":
+                        if (_layer == 0) throw new ParseException("bad endif command at line " + _currentLine);
+
                         if (_skip) _skip = false;
-                        else throw new ParseException("bad endif command at line " + _currentLine);
+                        --_layer;
 
                         break;
                     case "--local":
@@ -127,7 +136,7 @@ namespace Lep
             if (!_skip) ParseString(line);
         }
 
-        protected void ParseString(string str)
+        protected void ParseString(string str, bool eol = true)
         {
             int pos = 0;
 
@@ -144,7 +153,7 @@ namespace Lep
                 else throw new ParseException("bad token at line " + _currentLine);
             }
 
-            _tokenList.Add(new IdentifierToken(_currentLine, Token.EndOfLine));
+            if (eol) _tokenList.Add(new IdentifierToken(_currentLine, Token.EndOfLine));
         }
 
         protected void AddToken(Match match)
@@ -163,12 +172,12 @@ namespace Lep
 
                     if (_definitionList.ContainsKey(id))
                     {
-                        ParseString(_definitionList[id]);
+                        ParseString(_definitionList[id], false);
                         return;
                     }
                     else if (_localizationList.ContainsKey(id))
                     {
-                        ParseString(_localizationList[id]);
+                        ParseString(_localizationList[id], false);
                         return;
                     }
 
