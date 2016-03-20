@@ -84,44 +84,29 @@ namespace Lep
             }
 
             string nolp = DeleteLeftPad(line);
-            if (nolp.StartsWith("--"))
+            if (nolp.StartsWith("--", StringComparison.Ordinal))
             {
                 string[] parts = nolp.Split(new char[] { ' ', '\t', '\n', '\u001a' });
 
                 switch (parts[0])
                 {
                     case "--define":
-                        StringBuilder builder = new StringBuilder();
-
-                        if (parts.Length == 2) builder.Append("1");
-                        else for (int i = 2; i < parts.Length; i++) builder.Append(parts[i]);
-
-                        _definitionList.Add(parts[1], builder.ToString());
+                        Define(parts);
                         break;
                     case "--undef":
-                        if (!_definitionList.Remove(parts[1])) throw new ParseException("bad undef command at line " + _currentLine);
+                        Undefine(parts);
                         break;
                     case "--ifdef":
-                        if (!_definitionList.ContainsKey(parts[1])) _skip = true;
-                        ++_layer;
-
+                        IfDefine(parts);
                         break;
                     case "--ifndef":
-                        if (_definitionList.ContainsKey(parts[1])) _skip = true;
-                        ++_layer;
-
+                        IfNotDefine(parts);
                         break;
                     case "--if":
-                        if (!_definitionList.ContainsKey(parts[1]) || _definitionList[parts[1]] == "0") _skip = true;
-                        ++_layer;
-
+                        If(parts);
                         break;
                     case "--endif":
-                        if (_layer == 0) throw new ParseException("bad endif command at line " + _currentLine);
-
-                        if (_skip) _skip = false;
-                        --_layer;
-
+                        EndIf(parts);
                         break;
                     case "--local":
                         throw new ParseException("not implemented command at line " + _currentLine);
@@ -136,8 +121,52 @@ namespace Lep
             if (!_skip) ParseString(line);
         }
 
-        protected void ParseString(string str, bool eol = true)
+        protected void Define(string[] parts)
         {
+            if (parts == null || parts.Length < 2) throw new ParseException("bad define command at line " + _currentLine);
+
+            StringBuilder builder = new StringBuilder();
+
+            if (parts.Length == 2) builder.Append("1");
+            else for (int i = 2; i < parts.Length; i++) builder.Append(parts[i]);
+
+            _definitionList.Add(parts[1], builder.ToString());
+        }
+
+        protected void Undefine(string[] parts) { if (parts == null || parts.Length != 2 || !_definitionList.Remove(parts[1])) throw new ParseException("bad undef command at line " + _currentLine); }
+
+        protected void IfDefine(string[] parts)
+        {
+            if (parts == null || parts.Length != 2 || !_definitionList.ContainsKey(parts[1])) _skip = true;
+            ++_layer;
+        }
+
+        protected void IfNotDefine(string[] parts)
+        {
+            if (parts == null || parts.Length != 2 || _definitionList.ContainsKey(parts[1])) _skip = true;
+            ++_layer;
+        }
+
+        protected void If(string[] parts)
+        {
+            if (parts == null || parts.Length != 2 || !_definitionList.ContainsKey(parts[1]) || _definitionList[parts[1]] == "0") _skip = true;
+            ++_layer;
+        }
+
+        protected void EndIf(string[] parts)
+        {
+            if (parts == null || parts.Length != 1 || _layer == 0) throw new ParseException("bad endif command at line " + _currentLine);
+
+            if (_skip) _skip = false;
+            --_layer;
+        }
+
+        protected void ParseString(string str) { ParseString(str, true); }
+
+        protected void ParseString(string str, bool eol)
+        {
+            if (str == null) return;
+
             int pos = 0;
 
             Match next = _regex.Match(str);
@@ -191,6 +220,8 @@ namespace Lep
 
         protected static string DeleteLeftPad(string str)
         {
+            if (str == null) return null;
+
             int pos = 0;
             while (pos < str.Length && (str[pos] == ' ' || str[pos] == '\n' || str[pos] == '\t' || str[pos] == '\u001a')) ++pos;
 
