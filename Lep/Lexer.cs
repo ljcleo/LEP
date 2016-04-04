@@ -12,6 +12,7 @@ namespace Lep
         public static readonly string SpacePattern = @"(?<space>\s*)";
         public static readonly string CommentPattern = @"(?<comment>//.*)";
         public static readonly string NumberPattern = @"(?<number>\d+)";
+        public static readonly string CharPattern = @"(?<char>'(\\'|\\\\|\n|[^'])?'";
         public static readonly string StringPattern = @"(?<string>""(\\""|\\\\|\\n|[^""])*""|@""(""""|[^""])*"")";
         
         public static readonly string LatinPattern = @"\w\p{IsLatin-1Supplement}\p{IsLatinExtended-A}\p{IsLatinExtended-B}";
