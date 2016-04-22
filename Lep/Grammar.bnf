@@ -1,6 +1,5 @@
 <elements> ::= <expression> | <elements> ":" <expression>
 <tuple> ::= "{" <elements> "}"
-<function_definition> ::= "#" IDENTIFIER <tuple> <block>
 <suffix> ::= <tuple> | "(" <expression> ")"
 <primary> ::= "(" <expr> ")" | NUMBER | STRING | IDENTIFIER | <primary> <suffix>
 <self_change> ::= "++" IDENTIFIER | "--" IDENTIFIER
@@ -16,5 +15,6 @@
 <if> ::= "?" <guard_list> "."
 <while> ::= "*" <guard> "."
 <statement> ::= <if> | <while> | <block> | <expression>
+<function_definition> ::= "#" IDENTIFIER <tuple> <block>
 <program_part> ::= <function_definition> | <statement>
 <program> ::= <seperator> | <program_part> | <program> <seperator> | <program> <seperator> <program_part>
