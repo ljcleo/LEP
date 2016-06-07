@@ -6,8 +6,7 @@ namespace Lep
 {
     public class ExpressionNode : AstBranch
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
-        protected static readonly HashSet<string> Assignment = new HashSet<string>() { "=", "+=", "-=", "*=", "/=", "%=", "&&=", "||=" };
+        private static readonly HashSet<string> Assignment = new HashSet<string>() { "=", "+=", "-=", "*=", "/=", "%=", "&&=", "||=" };
 
         public IAstNode Left { get { return this[0]; } }
 
@@ -52,32 +51,11 @@ namespace Lep
             if (left is int && right is int) return ComputeNumber((int)left, op, (int)right);
             else if (op == "+")
             {
-                object[] leftTuple = left as object[], rightTuple = right as object[];
+                Tuple leftTuple = left as Tuple, rightTuple = right as Tuple;
 
-                if (leftTuple != null && rightTuple != null)
-                {
-                    object[] result = new object[leftTuple.Length + rightTuple.Length];
-                    Array.Copy(leftTuple, result, leftTuple.Length);
-                    Array.Copy(rightTuple, 0, result, rightTuple.Length, rightTuple.Length);
-
-                    return result;
-                }
-                else if (leftTuple != null)
-                {
-                    object[] result = new object[leftTuple.Length + 1];
-                    Array.Copy(leftTuple, result, leftTuple.Length);
-                    result[leftTuple.Length] = right;
-
-                    return result;
-                }
-                else if (rightTuple != null)
-                {
-                    object[] result = new object[rightTuple.Length + 1];
-                    result[0] = left;
-                    Array.Copy(rightTuple, 0, result, 1, rightTuple.Length);
-
-                    return result;
-                }
+                if (leftTuple != null && rightTuple != null) return leftTuple + rightTuple;
+                else if (leftTuple != null) return leftTuple + right;
+                else if (rightTuple != null) return left + rightTuple;
                 else return left.ToString() + right.ToString();
             }
             else if (op == "==") return left == null ? (right == null ? 1 : 0) : left.Equals(right) ? 1 : 0;
@@ -101,7 +79,7 @@ namespace Lep
                 case "<=": return left <= right ? 1 : 0;
                 case ">": return left > right ? 1 : 0;
                 case ">=": return left >= right ? 1 : 0;
-                case "&&": return left != 0 && right != 0 ? 1 : 0;
+                case "&&": return left * right != 0 ? 1 : 0;
                 case "||": return left != 0 || right != 0 ? 1 : 0;
                 default: throw new LepException("bad operator", this);
             }
@@ -111,8 +89,8 @@ namespace Lep
         {
             if (left == null) throw new ArgumentNullException("left", "null left tuple");
 
-            object[] right = rvalue as object[];
-            if (right != null && left.Count == right.Length)
+            Tuple right = rvalue as Tuple;
+            if (right != null && left.Count == right.Count)
             {
                 object result = 0;
 
@@ -170,7 +148,23 @@ namespace Lep
                     }
                 }
             }
-            else throw new LepException("bad assignment", this);
+            else
+            {
+                ArrayReferenceNode arrRef = left.Suffix(0) as ArrayReferenceNode;
+
+                if (arrRef != null)
+                {
+                    object[] arr = left.EvaluateSub(env, 1, type) as object[];
+
+                    if (arr != null)
+                    {
+                        object index = arrRef.Index.Evaluate(env);
+                        if (index is int) return arr[(int)index] = rvalue;
+                    }
+                }
+            }
+
+            throw new LepException("bad assignment", this);
         }
     }
 }

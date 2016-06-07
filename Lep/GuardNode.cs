@@ -34,8 +34,8 @@ namespace Lep
             string str = guard as string;
             if (str != null) return !string.IsNullOrEmpty(str);
 
-            object[] tuple = guard as object[];
-            if (tuple != null) return tuple.Length != 0;
+            Tuple tuple = guard as Tuple;
+            if (tuple != null) return tuple.Count != 0;
 
             return true;
         }

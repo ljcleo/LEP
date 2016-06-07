@@ -27,13 +27,13 @@ namespace Lep
 
             ParameterNode parameters = function.Parameters;
 
-            object[] arguments = Evaluate(env) as object[];
+            Tuple arguments = Evaluate(env) as Tuple;
             if (arguments == null) throw new LepException("bad expression argument", this);
 
-            if (arguments.Count() != parameters.Count) throw new LepException("bad number of argument", this);
+            if (arguments.Count != parameters.Count) throw new LepException("bad number of argument", this);
 
             Environment inner = function.CreateEnvironment();
-            for (int i = 0; i < arguments.Count(); i++) parameters.Evaluate(inner, i, arguments[i]);
+            for (int i = 0; i < arguments.Count; i++) parameters.Evaluate(inner, i, arguments[i]);
 
             try { return function.Body.Evaluate(inner); }
             catch (JumpSignal signal)
@@ -49,12 +49,12 @@ namespace Lep
 
             int pcount = function.ParametersCount;
 
-            object[] arguments = Evaluate(env) as object[];
+            Tuple arguments = Evaluate(env) as Tuple;
             if (arguments == null) throw new LepException("bad expression argument", this);
 
-            if (arguments.Count() != pcount) throw new LepException("bad number of argument", this);
+            if (arguments.Count != pcount) throw new LepException("bad number of argument", this);
 
-            return function.Invoke(arguments, this);
+            return function.Invoke(arguments.TupleArray, this);
         }
     }
 }

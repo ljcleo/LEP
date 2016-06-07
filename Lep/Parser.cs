@@ -6,7 +6,7 @@ namespace Lep
 {
     public class Parser
     {
-        private static readonly HashSet<string> _reserved = new HashSet<string>() { ")", "]", "}", ".", ";", ",", Token.EndOfLine };
+        private static readonly HashSet<string> _reserved = new HashSet<string>() { ")", "]", "}", ",", ";", ".", Token.EndOfLine };
         private static readonly HashSet<string> _primarySuffix = new HashSet<string>() { "(", "[", "{" };
         private static readonly HashSet<string> _selfChangePrefix = new HashSet<string>() { "++", "--" };
         private static readonly HashSet<string> _factorPrefix = new HashSet<string>() { "+", "-", "!", "@", "$", "~" };
@@ -49,6 +49,7 @@ namespace Lep
             Skip("{");
 
             Collection<IAstNode> tuple = new Collection<IAstNode>();
+
             while (!IsNext("}"))
             {
                 tuple.Add(Expression());
@@ -61,6 +62,32 @@ namespace Lep
             return new TupleNode(tuple);
         }
 
+        private IAstNode Array()
+        {
+            Skip("[");
+
+            Collection<IAstNode> array = new Collection<IAstNode>();
+
+            while (!IsNext("]"))
+            {
+                array.Add(Expression());
+                if (IsNext("]")) break;
+
+                Skip(":");
+            }
+
+            Skip("]");
+
+            if (IsNext("(", true))
+            {
+                array.Insert(0,  Expression());
+                Skip(")");
+            }
+            else array.Insert(0, new NullNode(new Collection<IAstNode>()));
+
+            return new ArrayNode(array);
+        }
+
         private IAstNode VariableArgument()
         {
             Skip("(");
@@ -68,6 +95,15 @@ namespace Lep
             Skip(")");
 
             return new ExpressionArgumentNode(new Collection<IAstNode>() { expr });
+        }
+
+        private IAstNode ArrayReference()
+        {
+            Skip("[");
+            IAstNode expr = Expression();
+            Skip("]");
+
+            return new ArrayReferenceNode(new Collection<IAstNode>() { expr });
         }
 
         private IAstNode Primary()
@@ -93,6 +129,7 @@ namespace Lep
                 {
                     if (IsNext("{")) primary.Add(new ArgumentNode((TupleNode)Tuple()));
                     else if (IsNext("(")) primary.Add(VariableArgument());
+                    else if (IsNext("[")) primary.Add(ArrayReference());
                     else throw new ParseException(_lexer.Read());
                 }
 
@@ -111,6 +148,7 @@ namespace Lep
         private IAstNode Factor()
         {
             if (IsNext("{")) return Tuple();
+            else if (IsNext("[")) return Array();
 
             IAstNode prefix = IsNext(_factorPrefix) ? (IAstNode)new AstLeaf(_lexer.Read()) : (IAstNode)new NullNode(new Collection<IAstNode>());
             IAstNode operand = IsNext(_selfChangePrefix) ? SelfChange() : Primary();

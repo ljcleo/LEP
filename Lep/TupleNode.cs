@@ -25,7 +25,7 @@ namespace Lep
 
         public override object Evaluate(Environment env)
         {
-            object[] tuple = new object[Count];
+            Tuple tuple = new Tuple(Count);
 
             int count = 0;
             foreach (IAstNode node in this) tuple[count++] = node.Evaluate(env);

@@ -21,7 +21,7 @@ namespace Lep
 
         public bool IsDirectPrimary { get { return (Prefix is NullNode ||  Prefix is AstLeaf && _assignablePrefix.Contains(((AstLeaf)Prefix).Token.Text)) && Operand is PrimaryNode; } }
 
-        public bool IsAssignable { get { return IsDirectPrimary && ((PrimaryNode)Operand).IsName; } }
+        public bool IsAssignable { get { return IsDirectPrimary && ((PrimaryNode)Operand).IsAssignable; } }
 
         public int AssignType
         {

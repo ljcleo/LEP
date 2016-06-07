@@ -20,9 +20,9 @@ namespace Lep
             AppendNative(env, "to_string", typeof(Natives), "ToString", typeof(object));
             AppendNative(env, "to_int", typeof(Natives), "ToNumberValue", typeof(object));
             AppendNative(env, "time", typeof(Natives), "ElapsedTime");
-            AppendNative(env, "get_element", typeof(Natives), "GetElement", typeof(object[]), typeof(int));
+            AppendNative(env, "get_element", typeof(Natives), "GetElement", typeof(Tuple), typeof(int));
             AppendNative(env, "string_to_tuple", typeof(Natives), "StringToTuple", typeof(string));
-            AppendNative(env, "tuple_to_string", typeof(Natives), "TupleToString", typeof(object[]));
+            AppendNative(env, "tuple_to_string", typeof(Natives), "TupleToString", typeof(Tuple));
 
             _startTime = DateTime.Now;
         }
@@ -70,8 +70,8 @@ namespace Lep
             string str = value as string;
             if (str != null) return str.Length;
 
-            object[] tuple = value as object[];
-            if (tuple != null) return tuple.Length;
+            Tuple tuple = value as Tuple;
+            if (tuple != null) return tuple.Count;
 
             throw new ArgumentException(value.GetType().ToString());
         }
@@ -79,23 +79,6 @@ namespace Lep
         public static string ToString(object value)
         {
             if (value == null) throw new ArgumentNullException("value", "null value");
-
-            object[] tuple = value as object[];
-            if (tuple != null)
-            {
-                StringBuilder builder = new StringBuilder("{");
-
-                string sep = "";
-                foreach (object element in tuple)
-                {
-                    builder.Append(sep);
-                    sep = ", ";
-
-                    builder.Append(element.ToString());
-                }
-
-                return builder.Append("}").ToString();
-            }
             else return value.ToString();
         }
 
@@ -109,14 +92,14 @@ namespace Lep
 
         public static int ElapsedTime() { return (int)(DateTime.Now - _startTime).TotalMilliseconds; }
 
-        public static object GetElement(object[] tuple, int index)
+        public static object GetElement(Tuple tuple, int index)
         {
             if (tuple == null) throw new ArgumentNullException("tuple", "null tuple");
             return tuple[index];
         }
 
-        public static object[] StringToTuple(string value) { return Array.ConvertAll(value.ToArray(), new Converter<char, object>(x => (object)x)); }
+        public static Tuple StringToTuple(string value) { return new Tuple(Array.ConvertAll(value.ToArray(), new Converter<char, object>(x => (object)x))); }
 
-        public static string TupleToString(object[] tuple) { return new string(Array.ConvertAll(tuple, new Converter<object, char>(x => (char)x))); }
+        public static string TupleToString(Tuple tuple) { return new string(Array.ConvertAll(tuple.TupleArray, new Converter<object, char>(x => (char)x))); }
     }
 }

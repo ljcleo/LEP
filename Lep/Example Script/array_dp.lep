@@ -1,0 +1,12 @@
+write{"Input index: "}                   //  输出提示信息
+n = to_int{read_line{}}                  //  读入字符串，并调用原生函数转换为整数至 n
+
+dp = [1 : 1](n)                          //  声明长度为 n 的数组 dp，赋初值 [1 : 1]
+len = 2                                  //  声明变量 len，赋初值 2
+
+* len < n ->                             //  循环语句，当 len 小于 n 时循环
+	dp[len] = dp[len - 1] + dp[len - 2]  //  获取 dp 中第 len - 1 和第 len - 2 个元素并求和，赋给 dp 中第 len 个元素
+	++len                                //  len 自增
+.                                        //  循环语句结束
+
+write_line{"Fibonacci: " + dp[len - 1]}  //  输出 dp 中第 len - 1 个元素

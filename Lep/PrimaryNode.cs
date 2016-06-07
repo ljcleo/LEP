@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace Lep
@@ -7,7 +8,11 @@ namespace Lep
     {
         public IAstNode Operand { get { return this[0]; } }
 
-        public bool IsName { get { return Count == 1 && Operand is NameNode; } }
+        public bool IsName { get { return Operand is NameNode && Count == 1; } }
+
+        public bool IsArrayReference { get { return Operand is NameNode && (from suffix in this where suffix is ArrayReferenceNode select suffix).Count() == Count - 1; } }
+
+        public bool IsAssignable { get { return IsName || IsArrayReference; } }
 
         public PrimaryNode(Collection<IAstNode> children) : base(children) { }
 
@@ -50,6 +55,9 @@ namespace Lep
 
                 ExpressionArgumentNode exprArg = current as ExpressionArgumentNode;
                 if (exprArg != null) return exprArg.Evaluate(env, target);
+
+                ArrayReferenceNode arrRef = current as ArrayReferenceNode;
+                if (arrRef != null) return arrRef.Evaluate(env, target);
                 
                 throw new LepException("bad suffix", this);
             }
