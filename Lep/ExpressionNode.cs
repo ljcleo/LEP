@@ -90,13 +90,15 @@ namespace Lep
             if (left == null) throw new ArgumentNullException("left", "null left tuple");
 
             Tuple right = rvalue as Tuple;
-            if (right != null && left.Count == right.Count)
+            if (right != null)
             {
                 object result = 0;
 
                 int count = 0;
                 foreach (IAstNode node in left)
                 {
+                    if (count >= right.Count) break;
+
                     TupleNode tuple = node as TupleNode;
 
                     if (node != null) result = AssignTuple(env, tuple, op, right[count++]);
@@ -154,12 +156,22 @@ namespace Lep
 
                 if (arrRef != null)
                 {
-                    object[] arr = left.EvaluateSub(env, 1, type) as object[];
+                    object lvalue = left.EvaluateSub(env, 1, type);
+
+                    object[] arr = lvalue as object[];
 
                     if (arr != null)
                     {
                         object index = arrRef.Index.Evaluate(env);
                         if (index is int) return arr[(int)index] = rvalue;
+                    }
+
+                    Dictionary<object, object> table = lvalue as Dictionary<object, object>;
+
+                    if (table != null)
+                    {
+                        object index = arrRef.Index.Evaluate(env);
+                        return table[index] = rvalue;
                     }
                 }
             }

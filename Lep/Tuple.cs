@@ -7,13 +7,11 @@ namespace Lep
     {
         private object[] _tuple;
 
-        public object this[int n]
+        public object this[int index]
         {
-            get { return _tuple[n]; }
-            set { _tuple[n] = value; }
+            get { return _tuple[index]; }
+            set { _tuple[index] = value; }
         }
-
-        public object[] TupleArray { get { return _tuple; } }
 
         public int Count { get { return _tuple.Length; } }
 
@@ -21,42 +19,73 @@ namespace Lep
 
         public Tuple(object[] tuple)
         {
+            if (tuple == null) throw new ArgumentException("null initialize array", "tuple");
+
             _tuple = new object[tuple.Length];
             tuple.CopyTo(_tuple, 0);
         }
 
         public Tuple(Tuple tuple)
         {
+            if (tuple == null) throw new ArgumentException("null initialize tuple", "tuple");
+
             _tuple = new object[tuple.Count];
-            tuple.TupleArray.CopyTo(_tuple, 0);
+            tuple.GetArray().CopyTo(_tuple, 0);
         }
 
-        public static Tuple operator +(object l, Tuple r)
+        public object[] GetArray() { return _tuple; }
+
+        public static Tuple Add(object left, Tuple right)
         {
-            Tuple result = new Tuple(r.Count + 1);
-            result[0] = l;
-            Array.Copy(r.TupleArray, 0, result.TupleArray, 1, r.Count);
+            if (right == null) throw new ArgumentException("null right value", "right");
+
+            Tuple result = new Tuple(right.Count + 1);
+            result[0] = left;
+            Array.Copy(right.GetArray(), 0, result.GetArray(), 1, right.Count);
 
             return result;
         }
 
-        public static Tuple operator +(Tuple l, object r)
+        public static Tuple Add(Tuple left, object right)
         {
-            Tuple result = new Tuple(l.Count + 1);
-            l.TupleArray.CopyTo(result.TupleArray, 0);
-            result[l.Count] = r;
+            if (left == null) throw new ArgumentException("null left value", "left");
+
+            Tuple result = new Tuple(left.Count + 1);
+            left.GetArray().CopyTo(result.GetArray(), 0);
+            result[left.Count] = right;
 
             return result;
         }
 
-        public static Tuple operator +(Tuple l, Tuple r)
+        public static Tuple Add(Tuple left, Tuple right)
         {
-            Tuple result = new Tuple(l.Count + r.Count);
-            Array.Copy(l.TupleArray, 0, result.TupleArray, 0, l.Count);
-            Array.Copy(r.TupleArray, 0, result.TupleArray, l.Count, r.Count);
+            if (left == null) throw new ArgumentException("null left value", "left");
+            if (right == null) throw new ArgumentException("null right value", "right");
+
+            Tuple result = new Tuple(left.Count + right.Count);
+            Array.Copy(left.GetArray(), 0, result.GetArray(), 0, left.Count);
+            Array.Copy(right.GetArray(), 0, result.GetArray(), left.Count, right.Count);
 
             return result;
         }
+
+        public static bool operator ==(Tuple left, Tuple right) { return left == null ? (right == null ? true : false) : (right == null ? false : left.GetArray() == right.GetArray()); }
+
+        public static bool operator !=(Tuple left, Tuple right) { return !(left == right); }
+
+        public static Tuple operator +(object left, Tuple right) { return Add(left, right); }
+
+        public static Tuple operator +(Tuple left, object right) { return Add(left, right); }
+
+        public static Tuple operator +(Tuple left, Tuple right) { return Add(left, right); }
+
+        public override bool Equals(object obj)
+        {
+            Tuple tuple = obj as Tuple;
+            return obj != null && this == tuple;
+        }
+
+        public override int GetHashCode() { return _tuple.GetHashCode(); }
 
         public override string ToString()
         {

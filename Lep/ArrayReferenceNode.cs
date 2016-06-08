@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Lep
 {
@@ -16,6 +17,15 @@ namespace Lep
             {
                 object index = Index.Evaluate(env);
                 if (index is int) return arr[(int)index];
+            }
+
+            Dictionary<object, object> table = target as Dictionary<object, object>;
+
+            if (table != null)
+            {
+                object value;
+                table.TryGetValue(Index.Evaluate(env), out value);
+                if (value != null) return value;
             }
 
             throw new LepException("bad array access", this);

@@ -100,6 +100,6 @@ namespace Lep
 
         public static Tuple StringToTuple(string value) { return new Tuple(Array.ConvertAll(value.ToArray(), new Converter<char, object>(x => (object)x))); }
 
-        public static string TupleToString(Tuple tuple) { return new string(Array.ConvertAll(tuple.TupleArray, new Converter<object, char>(x => (char)x))); }
+        public static string TupleToString(Tuple tuple) { return tuple == null ? "" :  new string(Array.ConvertAll(tuple.GetArray(), new Converter<object, char>(x => (char)x))); }
     }
 }

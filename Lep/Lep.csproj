@@ -97,6 +97,7 @@
     <Compile Include="Environment.cs" />
     <Compile Include="ExpressionNode.cs" />
     <Compile Include="GuardValue.cs" />
+    <Compile Include="TableNode.cs" />
     <Compile Include="Tuple.cs" />
     <Compile Include="UserFunction.cs" />
     <Compile Include="FunctionDefinitionNode.cs" />

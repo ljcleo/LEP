@@ -64,13 +64,17 @@ namespace Lep
 
         private IAstNode Array()
         {
+
             Skip("[");
+
+            bool table = false;
+            if (IsNext(":", true)) table = true;
 
             Collection<IAstNode> array = new Collection<IAstNode>();
 
             while (!IsNext("]"))
             {
-                array.Add(Expression());
+                array.Add(table ? Tuple() : Expression());
                 if (IsNext("]")) break;
 
                 Skip(":");
@@ -78,14 +82,18 @@ namespace Lep
 
             Skip("]");
 
-            if (IsNext("(", true))
+            if (!table)
             {
-                array.Insert(0,  Expression());
-                Skip(")");
+                if (IsNext("(", true))
+                {
+                    array.Insert(0, Expression());
+                    Skip(")");
+                }
+                else array.Insert(0, new NullNode(new Collection<IAstNode>()));
             }
-            else array.Insert(0, new NullNode(new Collection<IAstNode>()));
 
-            return new ArrayNode(array);
+            if (table) return new TableNode(array);
+            else return new ArrayNode(array);
         }
 
         private IAstNode VariableArgument()

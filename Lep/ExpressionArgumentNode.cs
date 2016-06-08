@@ -54,7 +54,7 @@ namespace Lep
 
             if (arguments.Count != pcount) throw new LepException("bad number of argument", this);
 
-            return function.Invoke(arguments.TupleArray, this);
+            return function.Invoke(arguments.GetArray(), this);
         }
     }
 }
