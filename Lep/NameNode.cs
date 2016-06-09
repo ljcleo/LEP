@@ -14,7 +14,7 @@ namespace Lep
 
         public object Evaluate(Environment env, int type)
         {
-            if (env == null) throw new ArgumentNullException("env", "null environment");
+            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
 
             object value = env.Get(Name, type);
 

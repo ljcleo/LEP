@@ -9,7 +9,7 @@ namespace Lep
 
         public ArgumentNode(TupleNode tuple) : base(new Collection<IAstNode>())
         {
-            if (tuple == null) throw new ArgumentNullException("tuple", "null tuple");
+            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null tuple");
             foreach (IAstNode node in tuple) Add(node);
         }
 
@@ -26,7 +26,7 @@ namespace Lep
 
         protected object EvaluateFunction(Environment env, UserFunction function)
         {
-            if (function == null) throw new ArgumentNullException("function", "null function");
+            if (function == null) throw new ArgumentNullException(nameof(function), "null function");
 
             ParameterNode parameters = function.Parameters;
             if (Count != parameters.Count) throw new LepException("bad number of arguments", this);
@@ -46,7 +46,7 @@ namespace Lep
 
         protected object EvaluateNativeFunction(Environment env, NativeFunction function)
         {
-            if (function == null) throw new ArgumentNullException("function", "null function");
+            if (function == null) throw new ArgumentNullException(nameof(function), "null function");
 
             int pcount = function.ParametersCount;
             if (Count != pcount) throw new LepException("bad number of arguments", this);

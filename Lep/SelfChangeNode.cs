@@ -15,7 +15,7 @@ namespace Lep
 
         public override object Evaluate(Environment env)
         {
-            if (env == null) throw new ArgumentNullException("env", "null environment");
+            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
 
             if (Operand is FactorNode && ((FactorNode)Operand).IsAssignable)
             {

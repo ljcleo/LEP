@@ -9,12 +9,13 @@ namespace Lep
         private static readonly HashSet<string> _reserved = new HashSet<string>() { ")", "]", "}", ",", ";", ".", Token.EndOfLine };
         private static readonly HashSet<string> _primarySuffix = new HashSet<string>() { "(", "[", "{" };
         private static readonly HashSet<string> _selfChangePrefix = new HashSet<string>() { "++", "--" };
-        private static readonly HashSet<string> _factorPrefix = new HashSet<string>() { "+", "-", "!", "@", "$", "~" };
+        private static readonly HashSet<string> _factorPrefix = new HashSet<string>() { "+", "-", "!", "~", "@", "$", "^" };
         private static readonly HashSet<string> _seperator = new HashSet<string>() { ",", Token.EndOfLine };
         private static readonly HashSet<string> _blockEnding = new HashSet<string>() { ".", ";" };
         private static readonly HashSet<string> _controller = new HashSet<string>() { "!", ":!", "!!" };
 
-        private static readonly Dictionary<string, Precedence> _operators = new Dictionary<string, Precedence>() {
+        private static readonly Dictionary<string, Precedence> _operators = new Dictionary<string, Precedence>()
+        {
             { "=", new Precedence(0, Precedence.Right) },
             { "+=", new Precedence(0, Precedence.Right) },
             { "-=", new Precedence(0, Precedence.Right) },
@@ -25,17 +26,22 @@ namespace Lep
             { "||=", new Precedence(0, Precedence.Right) },
             { "||", new Precedence(1, Precedence.Left) },
             { "&&", new Precedence(2, Precedence.Left) },
-            { "==", new Precedence(3, Precedence.Left) },
-            { "!=", new Precedence(3, Precedence.Left) },
-            { "<", new Precedence(4, Precedence.Left) },
-            { "<=", new Precedence(4, Precedence.Left) },
-            { ">", new Precedence(4, Precedence.Left) },
-            { ">=", new Precedence(4, Precedence.Left) },
-            { "+", new Precedence(5, Precedence.Left) },
-            { "-", new Precedence(5, Precedence.Left) },
-            { "*", new Precedence(6, Precedence.Left) },
-            { "/", new Precedence(6, Precedence.Left) },
-            { "%", new Precedence(6, Precedence.Left) },
+            { "|", new Precedence(3, Precedence.Left) },
+            { "^", new Precedence(4, Precedence.Left) },
+            { "&", new Precedence(5, Precedence.Left) },
+            { "==", new Precedence(6, Precedence.Left) },
+            { "!=", new Precedence(6, Precedence.Left) },
+            { "<", new Precedence(7, Precedence.Left) },
+            { "<=", new Precedence(7, Precedence.Left) },
+            { ">", new Precedence(7, Precedence.Left) },
+            { ">=", new Precedence(7, Precedence.Left) },
+            { "<<", new Precedence(8, Precedence.Left) },
+            { ">>", new Precedence(8, Precedence.Left) },
+            { "+", new Precedence(9, Precedence.Left) },
+            { "-", new Precedence(9, Precedence.Left) },
+            { "*", new Precedence(10, Precedence.Left) },
+            { "/", new Precedence(10, Precedence.Left) },
+            { "%", new Precedence(10, Precedence.Left) }
         };
 
         private Lexer _lexer;
@@ -64,17 +70,13 @@ namespace Lep
 
         private IAstNode Array()
         {
-
             Skip("[");
-
-            bool table = false;
-            if (IsNext(":", true)) table = true;
 
             Collection<IAstNode> array = new Collection<IAstNode>();
 
             while (!IsNext("]"))
             {
-                array.Add(table ? Tuple() : Expression());
+                array.Add(Expression());
                 if (IsNext("]")) break;
 
                 Skip(":");
@@ -82,18 +84,32 @@ namespace Lep
 
             Skip("]");
 
-            if (!table)
+            if (IsNext("(", true))
             {
-                if (IsNext("(", true))
-                {
-                    array.Insert(0, Expression());
-                    Skip(")");
-                }
-                else array.Insert(0, new NullNode(new Collection<IAstNode>()));
+                array.Insert(0, Expression());
+                Skip(")");
+            }
+            else array.Insert(0, new NullNode(new Collection<IAstNode>()));
+
+            return new ArrayNode(array);
+        }
+
+        private IAstNode Table()
+        {
+            Skip("[:");
+
+            Collection<IAstNode> table = new Collection<IAstNode>();
+
+            while (!IsNext(":]"))
+            {
+                table.Add(Tuple());
+                if (IsNext(":]")) break;
+
+                Skip(":");
             }
 
-            if (table) return new TableNode(array);
-            else return new ArrayNode(array);
+            Skip(":]");
+            return new TableNode(table);
         }
 
         private IAstNode VariableArgument()
@@ -157,6 +173,7 @@ namespace Lep
         {
             if (IsNext("{")) return Tuple();
             else if (IsNext("[")) return Array();
+            else if (IsNext("[:")) return Table();
 
             IAstNode prefix = IsNext(_factorPrefix) ? (IAstNode)new AstLeaf(_lexer.Read()) : (IAstNode)new NullNode(new Collection<IAstNode>());
             IAstNode operand = IsNext(_selfChangePrefix) ? SelfChange() : Primary();

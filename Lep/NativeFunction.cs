@@ -14,7 +14,7 @@ namespace Lep
 
         public NativeFunction(string name, MethodInfo method)
         {
-            if (method == null) throw new ArgumentNullException("method", "null method");
+            if (method == null) throw new ArgumentNullException(nameof(method), "null method");
 
             m_Method = method;
             m_Name = name;

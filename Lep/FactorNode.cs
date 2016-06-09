@@ -5,7 +5,7 @@ namespace Lep
 {
     public class FactorNode : AstBranch
     {
-        private static readonly HashSet<string> _assignablePrefix = new HashSet<string>() { "@", "$", "~" };
+        private static readonly HashSet<string> _assignablePrefix = new HashSet<string>() { "@", "$", "^" };
 
         public IAstNode Prefix { get { return this[0]; } }
 
@@ -17,7 +17,7 @@ namespace Lep
 
         public bool IsGlobalPrimary { get { return Prefix is AstLeaf && ((AstLeaf)Prefix).Token.Text == "$" && Operand is PrimaryNode; } }
 
-        public bool IsOuterPrimary { get { return Prefix is AstLeaf && ((AstLeaf)Prefix).Token.Text == "~" && Operand is PrimaryNode; } }
+        public bool IsOuterPrimary { get { return Prefix is AstLeaf && ((AstLeaf)Prefix).Token.Text == "^" && Operand is PrimaryNode; } }
 
         public bool IsDirectPrimary { get { return (Prefix is NullNode ||  Prefix is AstLeaf && _assignablePrefix.Contains(((AstLeaf)Prefix).Token.Text)) && Operand is PrimaryNode; } }
 
@@ -59,6 +59,7 @@ namespace Lep
                         case "+": return tmp;
                         case "-": return -tmp;
                         case "!": return tmp == 0 ? 1 : 0;
+                        case "~": return ~tmp;
                         default: throw new LepException("bad prefix: " + prefix, this);
                     }
                 }

@@ -1,6 +1,0 @@
-expr = "3+8"                           //  声明变量 expr，赋初值 "3+8"
-
-{ac : _ : bc} = string_to_tuple{expr}  //  通过元组匹配，获取 expr 的元组形式（由原生函数得到）中第 1、第 3 个元素
-a = to_int{ac}, b = to_int{bc}         //  调用原生函数，将 ac 和 bc 分别转换为整数至 a 和 b
-
-write_line{expr + "=" + (a + b)}       //  计算 a + b，输出完整的表达式

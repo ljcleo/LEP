@@ -25,7 +25,7 @@ namespace Lep
         public static readonly string SupportedCharPattern = LatinPattern + CyrillicPattern + ArabicPattern + KoreanPattern + JapanesePattern + ChinesePattern;
         public static readonly string NamePattern = "[" + SupportedCharPattern + @"-[\d]][" + SupportedCharPattern + "]*";
 
-        public static readonly string DoubleCharOperatorPattern = @"\+=|-=|\*=|/=|%=|&&=|\|\|=|\+\+|--|==|>=|<=|!=|&&|\|\||->|!!|:!";
+        public static readonly string DoubleCharOperatorPattern = @"\+=|-=|\*=|/=|%=|&&=|\|\|=|\+\+|--|==|>=|<=|!=|&&|\|\||<<|>>|\[:|:\]|->|!!|:!";
         public static readonly string SingleCharOperatorPattern = @"[\p{P}\p{S}]";
         public static readonly string IdentifierPattern = @"(?<identifier>" + NamePattern + "|" + DoubleCharOperatorPattern + "|" + SingleCharOperatorPattern + ")";
 
@@ -43,8 +43,17 @@ namespace Lep
 
         private TextReader _reader;
         private int _currentLine = 0;
+        private bool _console = false;
+        private string _start = "";
 
         public Lexer(TextReader reader) { _reader = reader; }
+
+        public Lexer(TextReader reader, bool console, string start)
+        {
+            _reader = reader;
+            _console = console;
+            _start = start;
+        }
 
         public Token Read()
         {
@@ -75,7 +84,11 @@ namespace Lep
         {
             string line;
 
-            try { line = _reader.ReadLine(); }
+            try
+            {
+                if (_console) Console.Write(_start);
+                line = _reader.ReadLine();
+            }
             catch (IOException e) { throw new ParseException(e); }
 
             if (line == null || line == "\u001a")
@@ -87,7 +100,7 @@ namespace Lep
             string nolp = DeleteLeftPad(line);
             if (nolp.StartsWith("--", StringComparison.Ordinal))
             {
-                string[] parts = nolp.Split(new char[] { ' ', '\t', '\n', '\u001a' });
+                string[] parts = nolp.Split(new char[] { ' ', '\t', '\r', '\n', '\u001a' });
 
                 switch (parts[0])
                 {
@@ -188,7 +201,7 @@ namespace Lep
 
         protected void AddToken(Match match)
         {
-            if (match == null) throw new ArgumentNullException("match", "null match");
+            if (match == null) throw new ArgumentNullException(nameof(match), "null match");
 
             if (!match.Groups[2].Success)
             {

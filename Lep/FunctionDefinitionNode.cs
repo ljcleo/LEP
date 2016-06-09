@@ -17,7 +17,7 @@ namespace Lep
 
         public override object Evaluate(Environment env)
         {
-            if (env == null) throw new ArgumentNullException("env", "null environment");
+            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
 
             env.Set(Name.ToString(), new UserFunction((ParameterNode)Parameters, (BlockNode)Body, env), Environment.LocalVariable);
             return Name.ToString();

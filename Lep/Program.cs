@@ -48,8 +48,10 @@ namespace Lep
                     return;
                 }
             }
-            
-            _lexer = new Lexer(_reader);
+
+            if (_reader == Console.In) _lexer = new Lexer(_reader, true, ">>> ");
+            else _lexer = new Lexer(_reader);
+
             _parser = new Parser(_lexer);
             Natives.Append(_environment);
 
@@ -58,8 +60,8 @@ namespace Lep
 
         static void TestIntepreter()
         {
-            /*try
-            {*/
+            try
+            {
                 IAstNode tree;
                 while (_lexer.Peek(0) != Token.EndOfFile)
                 {
@@ -72,11 +74,11 @@ namespace Lep
                         continue;
                     }
 
-                    /*try {*/ if (!(tree is NullNode)) tree.Evaluate(_environment); /*}
-                    catch (LepException e) { Console.WriteLine(e.Message); }*/
+                    try { if (!(tree is NullNode)) tree.Evaluate(_environment); }
+                    catch (LepException e) { Console.WriteLine(e.Message); }
                 }
-            /*}
-            catch (LepException e) { Console.WriteLine(e.Message); }*/
+            }
+            catch (LepException e) { Console.WriteLine(e.Message); }
 
             Console.WriteLine(Properties.Resources.ResourceManager.GetString("finish"));
             Console.ReadLine();

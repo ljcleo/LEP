@@ -1,7 +1,0 @@
-한 = read_line{}
-서 = read_line{}
-
-조선 = to_int{한} + to_int{서}
-* 조선 > 0 ->
-	write_line{조선}, --조선
-.

@@ -7,6 +7,8 @@ namespace Lep
     public class ExpressionNode : AstBranch
     {
         private static readonly HashSet<string> Assignment = new HashSet<string>() { "=", "+=", "-=", "*=", "/=", "%=", "&&=", "||=" };
+        private static readonly HashSet<string> Calcuation = new HashSet<string>() { "+", "-", "*", "/", "%", "<<", ">>", "&", "^", "|" };
+        private static readonly HashSet<string> Judgement = new HashSet<string>() { "==", "!=", "<", "<=", ">", ">=", "&&", "||" };
 
         public IAstNode Left { get { return this[0]; } }
 
@@ -32,7 +34,7 @@ namespace Lep
             }
         }
 
-        protected object ComputeAssignment(Environment env, string op, object rvalue)
+        private object ComputeAssignment(Environment env, string op, object rvalue)
         {
             TupleNode tuple = Left as TupleNode;
             if (tuple != null) return AssignTuple(env, tuple, op, rvalue);
@@ -43,10 +45,10 @@ namespace Lep
             throw new LepException("bad assignment", this);
         }
 
-        protected object ComputeOperator(object left, string op, object right)
+        private object ComputeOperator(object left, string op, object right)
         {
-            if (left == null) throw new ArgumentNullException("left", "null left value");
-            if (right == null) throw new ArgumentNullException("right", "null right value");
+            if (left == null) throw new ArgumentNullException(nameof(left), "null left value");
+            if (right == null) throw new ArgumentNullException(nameof(right), "null right value");
 
             if (left is int && right is int) return ComputeNumber((int)left, op, (int)right);
             else if (op == "+")
@@ -62,9 +64,15 @@ namespace Lep
             else if (op == "!=") return left == null ? (right != null ? 1 : 0) : !left.Equals(right) ? 1 : 0;
             else throw new LepException("bad type", this);
         }
+        
+        private object ComputeNumber(int left, string op, int right)
+        {
+            if (Calcuation.Contains(op)) return ComputeCalculation(left, op, right);
+            else if (Judgement.Contains(op)) return ComputeJudgement(left, op, right);
+            else throw new LepException("bad operator", this);
+        }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        protected object ComputeNumber(int left, string op, int right)
+        private object ComputeCalculation(int left, string op, int right)
         {
             switch (op)
             {
@@ -73,21 +81,34 @@ namespace Lep
                 case "*": return left * right;
                 case "/": return left / right;
                 case "%": return left % right;
-                case "==": return left == right ? 1 : 0;
-                case "!=": return left != right ? 1 : 0;
-                case "<": return left < right ? 1 : 0;
-                case "<=": return left <= right ? 1 : 0;
-                case ">": return left > right ? 1 : 0;
-                case ">=": return left >= right ? 1 : 0;
-                case "&&": return left * right != 0 ? 1 : 0;
-                case "||": return left != 0 || right != 0 ? 1 : 0;
+                case "<<": return left << right;
+                case ">>": return left >> right;
+                case "&": return left & right;
+                case "^": return left ^ right;
+                case "|": return left | right;
                 default: throw new LepException("bad operator", this);
             }
         }
 
-        protected object AssignTuple(Environment env, TupleNode left, string op, object rvalue)
+        private object ComputeJudgement(int left, string op, int right)
         {
-            if (left == null) throw new ArgumentNullException("left", "null left tuple");
+            switch (op)
+            {
+                case "==": return BoolToInt(left == right);
+                case "!=": return BoolToInt(left != right);
+                case "<": return BoolToInt(left < right);
+                case "<=": return BoolToInt(left <= right);
+                case ">": return BoolToInt(left > right);
+                case ">=": return BoolToInt(left >= right);
+                case "&&": return BoolToInt(left * right != 0);
+                case "||": return BoolToInt(left != 0 || right != 0);
+                default: throw new LepException("bad operator", this);
+            }
+        }
+
+        private object AssignTuple(Environment env, TupleNode left, string op, object rvalue)
+        {
+            if (left == null) throw new ArgumentNullException(nameof(left), "null left tuple");
 
             Tuple right = rvalue as Tuple;
             if (right != null)
@@ -121,11 +142,11 @@ namespace Lep
             else throw new LepException("bad assignment", this);
         }
 
-        protected object Assign(Environment env, PrimaryNode left, string op, object rvalue, int type)
+        private object Assign(Environment env, PrimaryNode left, string op, object rvalue, int type)
         {
-            if (env == null) throw new ArgumentNullException("env", "null environment");
-            if (left == null) throw new ArgumentNullException("left", "null left name");
-            if (op == null) throw new ArgumentNullException("op", "null operator");
+            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
+            if (left == null) throw new ArgumentNullException(nameof(left), "null left name");
+            if (op == null) throw new ArgumentNullException(nameof(op), "null operator");
 
             if (left.IsName)
             {
@@ -178,5 +199,7 @@ namespace Lep
 
             throw new LepException("bad assignment", this);
         }
+
+        private static int BoolToInt(bool value) { return value ? 1 : 0; }
     }
 }

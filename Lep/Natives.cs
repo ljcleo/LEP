@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace Lep
 {
@@ -12,17 +13,30 @@ namespace Lep
 
         public static void Append(Environment env)
         {
-            AppendNative(env, "write", typeof(Natives), "Write", typeof(object));
-            AppendNative(env, "write_line", typeof(Natives), "WriteLine", typeof(object));
-            AppendNative(env, "read", typeof(Natives), "Read");
-            AppendNative(env, "read_line", typeof(Natives), "ReadLine");
-            AppendNative(env, "length", typeof(Natives), "Length", typeof(object));
-            AppendNative(env, "to_string", typeof(Natives), "ToString", typeof(object));
-            AppendNative(env, "to_int", typeof(Natives), "ToNumberValue", typeof(object));
-            AppendNative(env, "time", typeof(Natives), "ElapsedTime");
-            AppendNative(env, "get_element", typeof(Natives), "GetElement", typeof(Tuple), typeof(int));
-            AppendNative(env, "string_to_tuple", typeof(Natives), "StringToTuple", typeof(string));
-            AppendNative(env, "tuple_to_string", typeof(Natives), "TupleToString", typeof(Tuple));
+            AppendNative(env, "write", typeof(Natives), nameof(Write), typeof(object));
+            AppendNative(env, "write_line", typeof(Natives), nameof(WriteLine), typeof(object));
+            AppendNative(env, "read", typeof(Natives), nameof(Read));
+            AppendNative(env, "read_line", typeof(Natives), nameof(ReadLine));
+            AppendNative(env, "length", typeof(Natives), nameof(Length), typeof(object));
+            AppendNative(env, "to_string", typeof(Natives), nameof(ToString), typeof(object));
+            AppendNative(env, "to_int", typeof(Natives), nameof(ToNumberValue), typeof(object));
+            AppendNative(env, "time", typeof(Natives), nameof(ElapsedTime));
+            AppendNative(env, "get_element", typeof(Natives), nameof(GetElement), typeof(Tuple), typeof(int));
+            AppendNative(env, "string_to_tuple", typeof(Natives), nameof(StringToTuple), typeof(string));
+            AppendNative(env, "tuple_to_string", typeof(Natives), nameof(TupleToString), typeof(Tuple));
+            AppendNative(env, "string_to_array", typeof(Natives), nameof(StringToArray), typeof(string));
+            AppendNative(env, "array_to_string", typeof(Natives), nameof(ArrayToString), typeof(object[]));
+            AppendNative(env, "tuple_to_array", typeof(Natives), nameof(TupleToArray), typeof(Tuple));
+            AppendNative(env, "array_to_tuple", typeof(Natives), nameof(ArrayToTuple), typeof(object[]));
+            AppendNative(env, "table_index_to_array", typeof(Natives), nameof(TableIndexToArray), typeof(Dictionary<object, object>));
+            AppendNative(env, "table_element_to_array", typeof(Natives), nameof(TableElementToArray), typeof(Dictionary<object, object>));
+            AppendNative(env, "array_to_table", typeof(Natives), nameof(ArrayToTable), typeof(object[]));
+            AppendNative(env, "contains_index", typeof(Natives), nameof(ContainsIndex), typeof(Dictionary<object, object>), typeof(object));
+            AppendNative(env, "is_int", typeof(Natives), nameof(IsNumber), typeof(object));
+            AppendNative(env, "is_string", typeof(Natives), nameof(IsString), typeof(object));
+            AppendNative(env, "is_tuple", typeof(Natives), nameof(IsTuple), typeof(object));
+            AppendNative(env, "is_array", typeof(Natives), nameof(IsArray), typeof(object));
+            AppendNative(env, "is_table", typeof(Natives), nameof(IsTable), typeof(object));
 
             _startTime = DateTime.Now;
         }
@@ -51,12 +65,14 @@ namespace Lep
 
         public static string Read()
         {
+            char[] space = new char[] { ' ', '\t', '\r', '\n', '\u001a' };
+
             StringBuilder builder = new StringBuilder();
 
             char c;
-            do c = (char)Console.Read(); while (c == ' ' || c == '\t' || c == '\r' || c == '\n');
+            do c = (char)Console.Read(); while (space.Contains(c));
 
-            do builder.Append(c); while ((c = (char)Console.Read()) != ' ' && c == '\t' && c == '\r' && c != '\n');
+            do builder.Append(c); while (!space.Contains(c = (char)Console.Read()));
 
             return builder.ToString();
         }
@@ -65,7 +81,7 @@ namespace Lep
 
         public static int Length(object value)
         {
-            if (value == null) throw new ArgumentNullException("value", "null value");
+            if (value == null) throw new ArgumentNullException(nameof(value), "null value");
 
             string str = value as string;
             if (str != null) return str.Length;
@@ -73,18 +89,24 @@ namespace Lep
             Tuple tuple = value as Tuple;
             if (tuple != null) return tuple.Count;
 
+            object[] array = value as object[];
+            if (array != null) return array.Length;
+
+            Dictionary<object, object> table = value as Dictionary<object, object>;
+            if (table != null) return table.Count;
+
             throw new ArgumentException(value.GetType().ToString());
         }
 
         public static string ToString(object value)
         {
-            if (value == null) throw new ArgumentNullException("value", "null value");
+            if (value == null) throw new ArgumentNullException(nameof(value), "null value");
             else return value.ToString();
         }
 
         public static int ToNumberValue(object value)
         {
-            if (value == null) throw new ArgumentNullException("value", "null value");
+            if (value == null) throw new ArgumentNullException(nameof(value), "null value");
 
             if (value is int) return (int)value;
             else return Int32.Parse(value.ToString(), CultureInfo.InvariantCulture);
@@ -94,12 +116,62 @@ namespace Lep
 
         public static object GetElement(Tuple tuple, int index)
         {
-            if (tuple == null) throw new ArgumentNullException("tuple", "null tuple");
+            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null tuple");
             return tuple[index];
         }
 
-        public static Tuple StringToTuple(string value) { return new Tuple(Array.ConvertAll(value.ToArray(), new Converter<char, object>(x => (object)x))); }
+        public static Tuple StringToTuple(string value) { return new Tuple(Array.ConvertAll(value.ToArray(), new Converter<char, object>(x => (int)x))); }
 
         public static string TupleToString(Tuple tuple) { return tuple == null ? "" :  new string(Array.ConvertAll(tuple.GetArray(), new Converter<object, char>(x => (char)x))); }
+
+        public static object[] StringToArray(string value) { return Array.ConvertAll(value.ToArray(), new Converter<char, object>(x => (int)x)); }
+
+        public static string ArrayToString(object[] array) { return array == null ? "" : new string(Array.ConvertAll(array, new Converter<object, char>(x => (char)x))); }
+
+        public static object[] TupleToArray(Tuple tuple)
+        {
+            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null tuple");
+            return tuple.GetArray();
+        }
+
+        public static Tuple ArrayToTuple(object[] array) { return new Tuple(array); }
+
+        public static object[] TableIndexToArray(Dictionary<object, object> table)
+        {
+            if (table == null) throw new ArgumentNullException(nameof(table), "null table");
+            return table.Keys.ToArray();
+        }
+
+        public static object[] TableElementToArray(Dictionary<object, object> table)
+        {
+            if (table == null) throw new ArgumentNullException(nameof(table), "null table");
+            return table.Values.ToArray();
+        }
+
+        public static Dictionary<object, object> ArrayToTable(object[] array)
+        {
+            if (array == null) throw new ArgumentNullException(nameof(array), "null array");
+
+            Dictionary<object, object> table = new Dictionary<object, object>();
+            for (int i = 0; i < array.Length; i++) table.Add(i, array[i]);
+
+            return table;
+        }
+
+        public static int ContainsIndex(Dictionary<object, object> table, object index)
+        {
+            if (table == null) throw new ArgumentNullException(nameof(table), "null table");
+            return table.ContainsKey(index) ? 1 : 0;
+        }
+
+        public static int IsNumber(object value) { return value is int ? 1 : 0; }
+
+        public static int IsString(object value) { return value is string ? 1 : 0; }
+
+        public static int IsTuple(object value) { return value is Tuple ? 1 : 0; }
+
+        public static int IsArray(object value) { return value is object[] ? 1 : 0; }
+
+        public static int IsTable(object value) { return value is Dictionary<object, object> ? 1 : 0; }
     }
 }

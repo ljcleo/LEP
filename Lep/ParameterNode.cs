@@ -9,7 +9,7 @@ namespace Lep
 
         public ParameterNode(TupleNode tuple) : base(new Collection<IAstNode>())
         {
-            if (tuple == null) throw new ArgumentNullException("tuple", "null tuple");
+            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null tuple");
             foreach (IAstNode node in tuple) Add(node);
         }
 
@@ -17,7 +17,7 @@ namespace Lep
 
         public void Evaluate(Environment env, int index, object value)
         {
-            if (env == null) throw new ArgumentNullException("env", "null environment");
+            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
 
             IAstNode current = Parameter(index);
 
