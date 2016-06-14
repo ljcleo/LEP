@@ -7,9 +7,10 @@ namespace Lep
     public class Parser
     {
         private static readonly HashSet<string> _reserved = new HashSet<string>() { ")", "]", "}", ",", ";", ".", Token.EndOfLine };
+        private static readonly HashSet<string> _scopePrefix = new HashSet<string>() { "@", "$", "^" };
         private static readonly HashSet<string> _primarySuffix = new HashSet<string>() { "(", "[", "{" };
         private static readonly HashSet<string> _selfChangePrefix = new HashSet<string>() { "++", "--" };
-        private static readonly HashSet<string> _factorPrefix = new HashSet<string>() { "+", "-", "!", "~", "@", "$", "^" };
+        private static readonly HashSet<string> _factorPrefix = new HashSet<string>() { "+", "-", "!", "~" };
         private static readonly HashSet<string> _seperator = new HashSet<string>() { ",", Token.EndOfLine };
         private static readonly HashSet<string> _blockEnding = new HashSet<string>() { ".", ";" };
         private static readonly HashSet<string> _controller = new HashSet<string>() { "!", ":!", "!!" };
@@ -22,6 +23,11 @@ namespace Lep
             { "*=", new Precedence(0, Precedence.Right) },
             { "/=", new Precedence(0, Precedence.Right) },
             { "%=", new Precedence(0, Precedence.Right) },
+            { "<<=", new Precedence(0, Precedence.Right) },
+            { ">>=", new Precedence(0, Precedence.Right) },
+            { "&=", new Precedence(0, Precedence.Right) },
+            { "^=", new Precedence(0, Precedence.Right) },
+            { "|=", new Precedence(0, Precedence.Right) },
             { "&&=", new Precedence(0, Precedence.Right) },
             { "||=", new Precedence(0, Precedence.Right) },
             { "||", new Precedence(1, Precedence.Left) },
@@ -49,6 +55,15 @@ namespace Lep
         public Parser(Lexer lexer) { _lexer = lexer; }
 
         public IAstNode Parse() { return Program(); }
+
+        private IAstNode ScopeName()
+        {
+            IAstNode scope = IsNext(_scopePrefix) ? new AstLeaf(_lexer.Read()) : (IAstNode)new NullNode(new Collection<IAstNode>());
+
+            Token name = _lexer.Read();
+            if (name.IsIdentifier && !_reserved.Contains(name.Text)) return new ScopeNameNode(new Collection<IAstNode>() { scope, new NameNode(name) });
+            else throw new ParseException(name);
+        }
 
         private IAstNode Tuple()
         {
@@ -112,6 +127,26 @@ namespace Lep
             return new TableNode(table);
         }
 
+        private IAstNode Parameter()
+        {
+            Skip("{");
+
+            Collection<IAstNode> parameter = new Collection<IAstNode>();
+
+            while (!IsNext("}"))
+            {
+                Token next = _lexer.Read();
+                if (next.IsIdentifier && !_reserved.Contains(next.Text)) parameter.Add(new NameNode(next));
+                else throw new ParseException(next);
+                
+                if (IsNext("}")) break;
+                Skip(":");
+            }
+
+            Skip("}");
+            return new ParameterNode(parameter);
+        }
+
         private IAstNode VariableArgument()
         {
             Skip("(");
@@ -143,11 +178,15 @@ namespace Lep
             {
                 Collection<IAstNode> primary = new Collection<IAstNode>();
 
-                Token next = _lexer.Read();
-                if (next.IsNumber) primary.Add(new NumberNode(next));
-                else if (next.IsString) primary.Add(new StringNode(next));
-                else if (next.IsIdentifier && !_reserved.Contains(next.Text)) primary.Add(new NameNode(next));
-                else throw new ParseException(next);
+                if (IsNext(_scopePrefix)) primary.Add(ScopeName());
+                else
+                {
+                    Token next = _lexer.Peek(0);
+                    if (next.IsNumber) primary.Add(new NumberNode(_lexer.Read()));
+                    else if (next.IsString) primary.Add(new StringNode(_lexer.Read()));
+                    else if (next.IsIdentifier && !_reserved.Contains(next.Text)) primary.Add(ScopeName());
+                    else throw new ParseException(_lexer.Read());
+                }
 
                 while (IsNext(_primarySuffix))
                 {
@@ -165,7 +204,7 @@ namespace Lep
         {
             Token prefix = _lexer.Read();
 
-            if (prefix.IsIdentifier && _selfChangePrefix.Contains(prefix.Text)) return new SelfChangeNode(new Collection<IAstNode>() { new AstLeaf(prefix), Factor() });
+            if (prefix.IsIdentifier && _selfChangePrefix.Contains(prefix.Text)) return new SelfChangeNode(new Collection<IAstNode>() { new AstLeaf(prefix), ScopeName() });
             else throw new ParseException(prefix);
         }
 
@@ -210,7 +249,7 @@ namespace Lep
 
         private IAstNode Guard()
         {
-            IAstNode condition = Expression();
+            IAstNode condition = IsNext("*", true) ? new NullNode(new Collection<IAstNode>()) : Expression();
             IAstNode body = Block();
 
             return new GuardNode(new Collection<IAstNode>() { condition, body });
@@ -263,10 +302,10 @@ namespace Lep
             if (!name.IsIdentifier || _reserved.Contains(name.Text)) throw new ParseException(name);
 
             IAstNode funcname = new NameNode(name);
-            IAstNode parameters = new ParameterNode((TupleNode)Tuple());
+            IAstNode parameter = Parameter();
             IAstNode body = Block();
 
-            return new FunctionDefinitionNode(new Collection<IAstNode>() { funcname, parameters, body });
+            return new FunctionDefinitionNode(new Collection<IAstNode>() { funcname, parameter, body });
         }
 
         private IAstNode Program()

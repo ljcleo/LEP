@@ -20,7 +20,7 @@ namespace Lep
         {
             Environment inner = new Environment(env);
 
-            if (Condition is FactorNode && ((FactorNode)Condition).IsNoPrefixPrimary && ((PrimaryNode)((FactorNode)Condition).Operand).IsName && ((NameNode)(((PrimaryNode)((FactorNode)Condition).Operand).Operand)).Token.Text == "*") return new GuardValue(true, Evaluate(inner));
+            if (Condition is NullNode) return new GuardValue(true, Evaluate(inner));
 
             object guard = Condition.Evaluate(inner);
             if (prefix != null && prefix.Equals(guard) || prefix == null && IsTrue(guard)) return new GuardValue(true, Evaluate(inner));
@@ -36,6 +36,9 @@ namespace Lep
 
             Tuple tuple = guard as Tuple;
             if (tuple != null) return tuple.Count != 0;
+
+            object[] array = guard as object[];
+            if (array != null) return array.Length != 0;
 
             return true;
         }

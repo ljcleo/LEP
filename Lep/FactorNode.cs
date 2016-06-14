@@ -1,39 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace Lep
 {
     public class FactorNode : AstBranch
     {
-        private static readonly HashSet<string> _assignablePrefix = new HashSet<string>() { "@", "$", "^" };
-
         public IAstNode Prefix { get { return this[0]; } }
 
         public IAstNode Operand { get { return this[1]; } }
 
-        public bool IsNoPrefixPrimary { get { return Prefix is NullNode && Operand is PrimaryNode; } }
-
-        public bool IsLocalPrimary { get { return Prefix is AstLeaf && ((AstLeaf)Prefix).Token.Text == "@" && Operand is PrimaryNode; } }
-
-        public bool IsGlobalPrimary { get { return Prefix is AstLeaf && ((AstLeaf)Prefix).Token.Text == "$" && Operand is PrimaryNode; } }
-
-        public bool IsOuterPrimary { get { return Prefix is AstLeaf && ((AstLeaf)Prefix).Token.Text == "^" && Operand is PrimaryNode; } }
-
-        public bool IsDirectPrimary { get { return (Prefix is NullNode ||  Prefix is AstLeaf && _assignablePrefix.Contains(((AstLeaf)Prefix).Token.Text)) && Operand is PrimaryNode; } }
-
-        public bool IsAssignable { get { return IsDirectPrimary && ((PrimaryNode)Operand).IsAssignable; } }
-
-        public int AssignType
-        {
-            get
-            {
-                if (IsNoPrefixPrimary) return Environment.NormalVariable;
-                else if (IsLocalPrimary) return Environment.LocalVariable;
-                else if (IsOuterPrimary) return Environment.OuterVariable;
-                else if (IsGlobalPrimary) return Environment.GlobalVariable;
-                else throw new LepException("not assignable", this);
-            }
-        }
+        public bool IsNoPrefix { get { return Prefix is NullNode; } }
 
         public FactorNode(Collection<IAstNode> children) : base(children) { }
 
@@ -41,12 +16,9 @@ namespace Lep
 
         public override object Evaluate(Environment env)
         {
-            object value;
+            object value = Operand.Evaluate(env);
 
-            if (Operand is PrimaryNode) value = ((PrimaryNode)Operand).Evaluate(env, AssignType);
-            else value = Operand.Evaluate(env);
-
-            if (Prefix is NullNode || IsDirectPrimary) return value;
+            if (Prefix is NullNode) return value;
             else
             {
                 string prefix = ((AstLeaf)Prefix).Token.Text;

@@ -64,7 +64,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Lep.Program</StartupObject>
@@ -98,6 +98,7 @@
     <Compile Include="ExpressionNode.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GuardValue.cs" />
+    <Compile Include="ScopeNameNode.cs" />
     <Compile Include="TableNode.cs" />
     <Compile Include="Tuple.cs" />
     <Compile Include="UserFunction.cs" />

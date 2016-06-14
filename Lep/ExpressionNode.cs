@@ -6,7 +6,7 @@ namespace Lep
 {
     public class ExpressionNode : AstBranch
     {
-        private static readonly HashSet<string> Assignment = new HashSet<string>() { "=", "+=", "-=", "*=", "/=", "%=", "&&=", "||=" };
+        private static readonly HashSet<string> Assignment = new HashSet<string>() { "=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", "&=", "^=", "|=", "&&=", "||=" };
         private static readonly HashSet<string> Calcuation = new HashSet<string>() { "+", "-", "*", "/", "%", "<<", ">>", "&", "^", "|" };
         private static readonly HashSet<string> Judgement = new HashSet<string>() { "==", "!=", "<", "<=", ">", ">=", "&&", "||" };
 
@@ -40,7 +40,7 @@ namespace Lep
             if (tuple != null) return AssignTuple(env, tuple, op, rvalue);
 
             FactorNode factor = Left as FactorNode;
-            if (factor != null && factor.IsAssignable) return Assign(env, (PrimaryNode)factor.Operand, op, rvalue, factor.AssignType);
+            if (factor != null && factor.IsNoPrefix) return Assign(env, (PrimaryNode)factor.Operand, op, rvalue);
 
             throw new LepException("bad assignment", this);
         }
@@ -126,14 +126,13 @@ namespace Lep
                     else
                     {
                         FactorNode factor = node as FactorNode;
+                        if (factor == null || !factor.IsNoPrefix) throw new LepException("bad assignment", this);
 
-                        if (factor == null || !factor.IsAssignable) throw new LepException("bad assignment", this);
-                        
                         PrimaryNode primary = factor.Operand as PrimaryNode;
-                        if (primary == null) throw new LepException("bad assignment", this);
+                        if (primary == null || !primary.IsAssignable) throw new LepException("bad assignment", this);
 
                         if (((NameNode)primary.Operand).IsAnonymous) ++count;
-                        else result = Assign(env, primary, op, right[count++], factor.AssignType);
+                        else result = Assign(env, primary, op, right[count++]);
                     }
                 }
 
@@ -142,42 +141,43 @@ namespace Lep
             else throw new LepException("bad assignment", this);
         }
 
-        private object Assign(Environment env, PrimaryNode left, string op, object rvalue, int type)
+        private object Assign(Environment env, PrimaryNode left, string op, object rvalue)
         {
             if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
             if (left == null) throw new ArgumentNullException(nameof(left), "null left name");
             if (op == null) throw new ArgumentNullException(nameof(op), "null operator");
 
-            if (left.IsName)
+            if (left.IsNoSuffixName)
             {
-                NameNode var = (NameNode)left.Operand;
+                ScopeNameNode scope = (ScopeNameNode)left.Operand;
+                string name = ((NameNode)scope.Name).Name;
 
                 if (op == "=")
                 {
-                    env.Set(var.Name, rvalue, type);
+                    env.Set(name, rvalue, scope.AssignType);
                     return rvalue;
                 }
                 else
                 {
-                    object name = env.Get(var.Name, type);
+                    object old = env.Get(name, scope.AssignType);
 
-                    if (name == null) throw new LepException("undefined name: " + var.Name, this);
+                    if (old == null) throw new LepException("undefined name: " + name, this);
                     else
                     {
                         object result = ComputeOperator(name, op.Substring(0, op.Length - 1), rvalue);
-                        env.Set(var.Name, result, type);
+                        env.Set(name, result, scope.AssignType);
 
                         return result;
                     }
                 }
             }
-            else
+            else if (left.IsAllArrayReference)
             {
                 ArrayReferenceNode arrRef = left.Suffix(0) as ArrayReferenceNode;
 
                 if (arrRef != null)
                 {
-                    object lvalue = left.EvaluateSub(env, 1, type);
+                    object lvalue = left.EvaluateSub(env, 1);
 
                     object[] arr = lvalue as object[];
 

@@ -1,34 +1,36 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Text;
 
 namespace Lep
 {
-    public class ParameterNode : TupleNode
+    public class ParameterNode : AstBranch
     {
+        public IAstNode Parameter(int index) { return this[index]; }
+
         public ParameterNode(Collection<IAstNode> children) : base(children) { }
 
-        public ParameterNode(TupleNode tuple) : base(new Collection<IAstNode>())
+        public override string ToString()
         {
-            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null tuple");
-            foreach (IAstNode node in tuple) Add(node);
-        }
+            StringBuilder builder = new StringBuilder("{");
 
-        public IAstNode Parameter(int index) { return this[index]; }
+            string sep = "";
+            foreach (IAstNode node in this)
+            {
+                builder.Append(sep);
+                sep = " ";
+
+                builder.Append(node.ToString());
+            }
+
+            return builder.Append("}").ToString();
+        }
 
         public void Evaluate(Environment env, int index, object value)
         {
             if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
 
-            IAstNode current = Parameter(index);
-
-            FactorNode factor = current as FactorNode;
-            if (factor == null || !factor.IsNoPrefixPrimary) throw new LepException("bad parameter");
-
-            PrimaryNode primary = factor.Operand as PrimaryNode;
-            if (primary == null || !primary.IsName) throw new LepException("bad parameter");
-
-
-            NameNode name = primary.Operand as NameNode;
+            NameNode name = Parameter(index) as NameNode;
             if (name == null) throw new LepException("bad parameter");
 
             if (name.IsAnonymous) return;
