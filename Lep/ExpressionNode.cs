@@ -22,16 +22,24 @@ namespace Lep
         {
             string op = ((AstLeaf)Operator).Token.Text;
 
-            if (Assignment.Contains(op))
+            if (op == "<=>") return ComputeBinding(env, Right.Evaluate(env));
+            if (Assignment.Contains(op)) return ComputeAssignment(env, op, Right.Evaluate(env)); 
+            else return ComputeOperator(Left.Evaluate(env), op, Right.Evaluate(env));
+        }
+
+        private object ComputeBinding(Environment env, object rvalue)
+        {
+            FactorNode factor = Left as FactorNode;
+
+            if (factor != null && factor.IsNoPrefix)
             {
-                object right = Right.Evaluate(env);
-                return ComputeAssignment(env, op, right);
+                string name = ((NameNode)((ScopeNameNode)((PrimaryNode)factor.Operand).Operand).Name).Name;
+                env.Set(name, rvalue, Environment.Constant);
+
+                return rvalue;
             }
-            else
-            {
-                object left = Left.Evaluate(env), right = Right.Evaluate(env);
-                return ComputeOperator(left, op, right);
-            }
+
+            throw new LepException("bad binding", this);
         }
 
         private object ComputeAssignment(Environment env, string op, object rvalue)
@@ -149,11 +157,13 @@ namespace Lep
             if (left == null) throw new LepException("internal error: null left name", this);
             if (op == null) throw new LepException("internal error: null operator", this);
 
+            ScopeNameNode scope = (ScopeNameNode)left.Operand;
+
+            string name = ((NameNode)scope.Name).Name;
+            if (env.IsConstant(name)) throw new LepException("cannot assign constant: " + name, this);
+
             if (left.IsNoSuffixName)
             {
-                ScopeNameNode scope = (ScopeNameNode)left.Operand;
-                string name = ((NameNode)scope.Name).Name;
-
                 if (op == "=")
                 {
                     env.Set(name, rvalue, scope.AssignType);
@@ -189,7 +199,9 @@ namespace Lep
 
                         if (index is int)
                         {
-                            if ((int)index < arr.Length) return arr[(int)index] = rvalue;
+                            int id = (int)index;
+
+                            if (id < arr.Length) return arr[id] = op == "=" ? rvalue : ComputeOperator(arr[id], op.Substring(0, op.Length - 1), rvalue);
                             else throw new LepException("bad array access", this);
                         }
                     }
@@ -199,7 +211,16 @@ namespace Lep
                     if (table != null)
                     {
                         object index = arrRef.Index.Evaluate(env);
-                        return table[index] = rvalue;
+
+                        if (op == "=") return table[index] = rvalue;
+                        else
+                        {
+                            object old = null;
+                            table.TryGetValue(index, out old);
+
+                            if (old == null) throw new LepException("bad array access", this);
+                            else return table[index] = ComputeOperator(old, op.Substring(0, op.Length - 1), rvalue);
+                        }
                     }
                 }
             }

@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace Lep
 {
-    public class FunctionDefinitionNode : AstBranch
+    public class ConstFunctionNode : AstBranch
     {
         public IAstNode Name { get { return this[0]; } }
 
@@ -11,7 +10,7 @@ namespace Lep
 
         public IAstNode Body { get { return this[2]; } }
 
-        public FunctionDefinitionNode(Collection<IAstNode> children) : base(children) { }
+        public ConstFunctionNode(Collection<IAstNode> children) : base(children) { }
 
         public override string ToString() { return "(define function " + Name + " " + Parameters + " " + Body + ")"; }
 
@@ -19,7 +18,7 @@ namespace Lep
         {
             if (env == null) throw new LepException("internal error: null environment", this);
 
-            env.Set(Name.ToString(), new UserFunction((ParameterNode)Parameters, (BlockNode)Body, env), Environment.LocalVariable);
+            env.Set(Name.ToString(), new UserFunction((ParameterNode)Parameters, (BlockNode)Body, env), Environment.Constant);
             return Name.ToString();
         }
     }

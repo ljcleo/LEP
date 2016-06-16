@@ -48,7 +48,7 @@ namespace Lep
             try { info = from.GetMethod(method, parameters); }
             catch (Exception) { throw new LepException("cannot find native function: " + method); }
 
-            env.Set(name, new NativeFunction(method, info), Environment.GlobalVariable);
+            env.Set(name, new NativeFunction(method, info), Environment.Constant);
         }
 
         public static int Write(object value)

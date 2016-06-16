@@ -2,17 +2,17 @@
 {
     public class GuardValue
     {
-        private bool m_GuardExpression;
-        private object m_GuardBody;
+        private bool _guardExpression;
+        private object _guardBody;
 
-        public bool GuardExpression { get { return m_GuardExpression; } }
+        public bool GuardExpression { get { return _guardExpression; } }
 
-        public object GuardBody { get { return m_GuardBody; } }
+        public object GuardBody { get { return _guardBody; } }
 
         public GuardValue(bool expression, object body)
         {
-            m_GuardExpression = expression;
-            m_GuardBody = body;
+            _guardExpression = expression;
+            _guardBody = body;
         }
     }
 }

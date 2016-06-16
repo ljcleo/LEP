@@ -25,7 +25,7 @@ namespace Lep
         public static readonly string SupportedCharPattern = LatinPattern + CyrillicPattern + ArabicPattern + KoreanPattern + JapanesePattern + ChinesePattern;
         public static readonly string NamePattern = "[" + SupportedCharPattern + @"-[\d]][" + SupportedCharPattern + "]*";
 
-        public static readonly string DoubleCharOperatorPattern = @"\+=|-=|\*=|/=|%=|&&=|\|\|=|\+\+|--|==|>=|<=|!=|&&|\|\||<<|>>|\[:|:\]|->|!!|:!";
+        public static readonly string DoubleCharOperatorPattern = @"<=>|\+=|-=|\*=|/=|%=|&&=|\|\|=|\+\+|--|==|>=|<=|!=|&&|\|\||<<|>>|\[:|:\]|->|!!|:!";
         public static readonly string SingleCharOperatorPattern = @"[\p{P}\p{S}]";
         public static readonly string IdentifierPattern = @"(?<identifier>" + NamePattern + "|" + DoubleCharOperatorPattern + "|" + SingleCharOperatorPattern + ")";
 

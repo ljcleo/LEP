@@ -95,6 +95,7 @@
     <Compile Include="BlockNode.cs" />
     <Compile Include="ControlNode.cs" />
     <Compile Include="Environment.cs" />
+    <Compile Include="ExpressionFunctionNode.cs" />
     <Compile Include="ExpressionNode.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GuardValue.cs" />
@@ -102,7 +103,7 @@
     <Compile Include="TableNode.cs" />
     <Compile Include="Tuple.cs" />
     <Compile Include="UserFunction.cs" />
-    <Compile Include="FunctionDefinitionNode.cs" />
+    <Compile Include="ConstFunctionNode.cs" />
     <Compile Include="GuardListNode.cs" />
     <Compile Include="GuardNode.cs" />
     <Compile Include="IAstNode.cs" />

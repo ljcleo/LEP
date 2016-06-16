@@ -18,6 +18,7 @@ namespace Lep
         private static readonly Dictionary<string, Precedence> _operators = new Dictionary<string, Precedence>()
         {
             { "=", new Precedence(0, Precedence.Right) },
+            { "<=>", new Precedence(0, Precedence.Right) },
             { "+=", new Precedence(0, Precedence.Right) },
             { "-=", new Precedence(0, Precedence.Right) },
             { "*=", new Precedence(0, Precedence.Right) },
@@ -213,6 +214,7 @@ namespace Lep
             if (IsNext("{")) return Tuple();
             else if (IsNext("[")) return Array();
             else if (IsNext("[:")) return Table();
+            else if (IsNext("#")) return ExpressionFunction();
 
             IAstNode prefix = IsNext(_factorPrefix) ? (IAstNode)new AstLeaf(_lexer.Read()) : (IAstNode)new NullNode(new Collection<IAstNode>());
             IAstNode operand = IsNext(_selfChangePrefix) ? SelfChange() : Primary();
@@ -294,7 +296,7 @@ namespace Lep
             else return Expression();
         }
 
-        private IAstNode FunctionDefinition()
+        private IAstNode GlobalFunction()
         {
             Skip("#");
 
@@ -305,7 +307,17 @@ namespace Lep
             IAstNode parameter = Parameter();
             IAstNode body = Block();
 
-            return new FunctionDefinitionNode(new Collection<IAstNode>() { funcname, parameter, body });
+            return new ConstFunctionNode(new Collection<IAstNode>() { funcname, parameter, body });
+        }
+
+        private IAstNode ExpressionFunction()
+        {
+            Skip("#");
+
+            IAstNode parameter = Parameter();
+            IAstNode body = Block();
+
+            return new ExpressionFunctionNode(new Collection<IAstNode>() { parameter, body });
         }
 
         private IAstNode Program()
@@ -314,7 +326,7 @@ namespace Lep
             {
                 IAstNode body;
 
-                if (IsNext("#")) body = FunctionDefinition();
+                if (IsNext("#")) body = GlobalFunction();
                 else body = Statement();
 
                 if (IsNext(_seperator, true)) return body;

@@ -11,12 +11,12 @@ namespace Lep
         public const int ContinueSignal = 2;
         public const int ReturnSignal = 3;
 
-        private int m_SignalType;
-        private object m_ReturnValue;
+        private int _signalType;
+        private object _returnValue;
 
-        public int SignalType { get { return m_SignalType; } }
+        public int SignalType { get { return _signalType; } }
 
-        public object ReturnValue { get { return m_ReturnValue; } }
+        public object ReturnValue { get { return _returnValue; } }
 
         public JumpSignal() : this(UnknownSignal, 0) { }
 
@@ -25,8 +25,8 @@ namespace Lep
         public JumpSignal(int type, object value)
             : base()
         {
-            m_SignalType = type;
-            m_ReturnValue = value;
+            _signalType = type;
+            _returnValue = value;
         }
 
         public JumpSignal(string msg) : base(msg) { }

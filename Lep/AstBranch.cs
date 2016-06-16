@@ -6,18 +6,18 @@ namespace Lep
 {
     public class AstBranch : IAstNode
     {
-        private List<IAstNode> m_Children;
+        private List<IAstNode> _children;
 
-        public AstBranch(Collection<IAstNode> children) { m_Children = new List<IAstNode>(children); }
+        public AstBranch(Collection<IAstNode> children) { _children = new List<IAstNode>(children); }
 
-        public void Add(IAstNode node) { m_Children.Add(node); }
+        public void Add(IAstNode node) { _children.Add(node); }
 
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder("(");
 
             string sep = "";
-            foreach (IAstNode node in m_Children)
+            foreach (IAstNode node in _children)
             {
                 builder.Append(sep);
                 sep = " ";
@@ -28,17 +28,17 @@ namespace Lep
             return builder.Append(")").ToString();
         }
 
-        public IAstNode this[int index] { get { return m_Children[index]; } }
+        public IAstNode this[int index] { get { return _children[index]; } }
 
-        public int Count { get { return m_Children.Count; } }
+        public int Count { get { return _children.Count; } }
 
-        public IEnumerator<IAstNode> Children { get { return m_Children.GetEnumerator(); } }
+        public IEnumerator<IAstNode> Children { get { return _children.GetEnumerator(); } }
 
         public string Location
         {
             get
             {
-                foreach (IAstNode node in m_Children)
+                foreach (IAstNode node in _children)
                 {
                     string location = node.Location;
                     if (location != null) return location;
