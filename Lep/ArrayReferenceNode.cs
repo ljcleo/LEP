@@ -16,7 +16,7 @@ namespace Lep
             if (arr != null)
             {
                 object index = Index.Evaluate(env);
-                if (index is int) return arr[(int)index];
+                if (index is int && (int)index < arr.Length) return arr[(int)index];
             }
 
             Dictionary<object, object> table = target as Dictionary<object, object>;

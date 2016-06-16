@@ -9,12 +9,12 @@ namespace Lep
         private MethodInfo m_Method;
         private string m_Name;
         private int m_ParametersCount;
-
+        
         public int ParametersCount { get { return m_ParametersCount; } }
 
         public NativeFunction(string name, MethodInfo method)
         {
-            if (method == null) throw new ArgumentNullException(nameof(method), "null method");
+            if (method == null) throw new LepException("internal error: null method", new ArgumentNullException(nameof(method), "null method"));
 
             m_Method = method;
             m_Name = name;
@@ -25,7 +25,7 @@ namespace Lep
         public object Invoke(object[] arguments, IAstNode node)
         {
             try { return m_Method.Invoke(null, arguments); }
-            catch (Exception) { throw new LepException("bad native function call: " + m_Name, node); }
+            catch { throw new LepException("bad native function call: " + m_Name, node); }
         }
 
         public override string ToString() { return "<native function: " + GetHashCode() + ">"; }

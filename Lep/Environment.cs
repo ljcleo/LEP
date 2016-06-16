@@ -26,7 +26,7 @@ namespace Lep
                 case NormalVariable: return Get(name);
                 case OuterVariable: return GetOuter(name);
                 case GlobalVariable: return GetGlobal(name);
-                default: throw new ArgumentException("bad type: " + type);
+                default: throw new LepException("internal error: bad type", new ArgumentException("bad type: " + type));
             }
         }
 
@@ -46,7 +46,7 @@ namespace Lep
                 case GlobalVariable:
                     SetGlobal(name, value);
                     break;
-                default: throw new ArgumentException("bad type: " + type);
+                default: throw new LepException("internal error: bad type", new ArgumentException("bad type: " + type));
             }
         }
 
@@ -84,7 +84,7 @@ namespace Lep
         {
             try
             {
-                if (_father == null) throw new KeyNotFoundException(name);
+                if (_father == null) throw new LepException("outer name not found: " + name, new KeyNotFoundException(name));
                 _father.SetOuter(name, value);
             }
             catch (KeyNotFoundException)

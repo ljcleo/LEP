@@ -201,7 +201,7 @@ namespace Lep
 
         protected void AddToken(Match match)
         {
-            if (match == null) throw new ArgumentNullException(nameof(match), "null match");
+            if (match == null) throw new ParseException("internal error: null match");
 
             if (!match.Groups[2].Success)
             {

@@ -61,6 +61,15 @@ namespace Lep.Properties {
         }
         
         /// <summary>
+        ///   查找类似 bad jump signal 的本地化字符串。
+        /// </summary>
+        public static string badjs {
+            get {
+                return ResourceManager.GetString("badjs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 脚本执行完毕。按回车键退出…… 的本地化字符串。
         /// </summary>
         public static string finish {

@@ -47,8 +47,8 @@ namespace Lep
 
         private object ComputeOperator(object left, string op, object right)
         {
-            if (left == null) throw new ArgumentNullException(nameof(left), "null left value");
-            if (right == null) throw new ArgumentNullException(nameof(right), "null right value");
+            if (left == null) throw new LepException("internal error: null left value", this);
+            if (right == null) throw new LepException("internal error: null right value", this);
 
             if (left is int && right is int) return ComputeNumber((int)left, op, (int)right);
             else if (op == "+")
@@ -79,7 +79,9 @@ namespace Lep
                 case "+": return left + right;
                 case "-": return left - right;
                 case "*": return left * right;
-                case "/": return left / right;
+                case "/":
+                    if (right == 0) throw new LepException("number divided by zero", this);
+                    return left / right;
                 case "%": return left % right;
                 case "<<": return left << right;
                 case ">>": return left >> right;
@@ -108,7 +110,7 @@ namespace Lep
 
         private object AssignTuple(Environment env, TupleNode left, string op, object rvalue)
         {
-            if (left == null) throw new ArgumentNullException(nameof(left), "null left tuple");
+            if (left == null) throw new LepException("internal error: null left tuple", this);
 
             Tuple right = rvalue as Tuple;
             if (right != null)
@@ -143,9 +145,9 @@ namespace Lep
 
         private object Assign(Environment env, PrimaryNode left, string op, object rvalue)
         {
-            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
-            if (left == null) throw new ArgumentNullException(nameof(left), "null left name");
-            if (op == null) throw new ArgumentNullException(nameof(op), "null operator");
+            if (env == null) throw new LepException("internal error: null environment", this);
+            if (left == null) throw new LepException("internal error: null left name", this);
+            if (op == null) throw new LepException("internal error: null operator", this);
 
             if (left.IsNoSuffixName)
             {
@@ -184,7 +186,12 @@ namespace Lep
                     if (arr != null)
                     {
                         object index = arrRef.Index.Evaluate(env);
-                        if (index is int) return arr[(int)index] = rvalue;
+
+                        if (index is int)
+                        {
+                            if ((int)index < arr.Length) return arr[(int)index] = rvalue;
+                            else throw new LepException("bad array access", this);
+                        }
                     }
 
                     Dictionary<object, object> table = lvalue as Dictionary<object, object>;

@@ -81,7 +81,7 @@ namespace Lep
 
         public static int Length(object value)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value), "null value");
+            if (value == null) throw new LepException("internal error: null value", new ArgumentNullException(nameof(value), "null value"));
 
             string str = value as string;
             if (str != null) return str.Length;
@@ -95,28 +95,28 @@ namespace Lep
             Dictionary<object, object> table = value as Dictionary<object, object>;
             if (table != null) return table.Count;
 
-            throw new ArgumentException(value.GetType().ToString());
+            throw new LepException("bad argument type " + value.GetType().ToString(), new ArgumentException(value.GetType().ToString()));
         }
 
         public static string ToString(object value)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value), "null value");
+            if (value == null) throw new LepException("null value", new ArgumentNullException(nameof(value), "null value"));
             else return value.ToString();
         }
 
         public static int ToNumberValue(object value)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value), "null value");
+            if (value == null) throw new LepException("null value", new ArgumentNullException(nameof(value), "null value"));
 
             if (value is int) return (int)value;
-            else return Int32.Parse(value.ToString(), CultureInfo.InvariantCulture);
+            else return int.Parse(value.ToString(), CultureInfo.InvariantCulture);
         }
 
         public static int ElapsedTime() { return (int)(DateTime.Now - _startTime).TotalMilliseconds; }
 
         public static object GetElement(Tuple tuple, int index)
         {
-            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null tuple");
+            if (tuple == null) throw new LepException("null tuple", new ArgumentNullException(nameof(tuple), "null tuple"));
             return tuple[index];
         }
 
@@ -130,7 +130,7 @@ namespace Lep
 
         public static object[] TupleToArray(Tuple tuple)
         {
-            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null tuple");
+            if (tuple == null) throw new LepException("null tuple", new ArgumentNullException(nameof(tuple), "null tuple"));
             return tuple.GetArray();
         }
 
@@ -138,19 +138,19 @@ namespace Lep
 
         public static object[] TableIndexToArray(Dictionary<object, object> table)
         {
-            if (table == null) throw new ArgumentNullException(nameof(table), "null table");
+            if (table == null) throw new LepException("null table", new ArgumentNullException(nameof(table), "null table"));
             return table.Keys.ToArray();
         }
 
         public static object[] TableElementToArray(Dictionary<object, object> table)
         {
-            if (table == null) throw new ArgumentNullException(nameof(table), "null table");
+            if (table == null) throw new LepException("null table", new ArgumentNullException(nameof(table), "null table"));
             return table.Values.ToArray();
         }
 
         public static Dictionary<object, object> ArrayToTable(object[] array)
         {
-            if (array == null) throw new ArgumentNullException(nameof(array), "null array");
+            if (array == null) throw new LepException("null array", new ArgumentNullException(nameof(array), "null array"));
 
             Dictionary<object, object> table = new Dictionary<object, object>();
             for (int i = 0; i < array.Length; i++) table.Add(i, array[i]);
@@ -160,7 +160,7 @@ namespace Lep
 
         public static int ContainsIndex(Dictionary<object, object> table, object index)
         {
-            if (table == null) throw new ArgumentNullException(nameof(table), "null table");
+            if (table == null) throw new LepException("null table", new ArgumentNullException(nameof(table), "null table"));
             return table.ContainsKey(index) ? 1 : 0;
         }
 

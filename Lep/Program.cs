@@ -19,8 +19,6 @@ namespace Lep
         [STAThread]
         static void Main(string[] args)
         {
-            Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
-
             if (args.Length == 0)
             {
                 using (OpenFileDialog dialog = new OpenFileDialog())
@@ -75,13 +73,21 @@ namespace Lep
                     }
 
                     try { if (!(tree is NullNode)) tree.Evaluate(_environment); }
+                    catch (JumpSignal signal)
+                    {
+                        if (signal.SignalType == JumpSignal.ReturnSignal) break;
+                        else Console.WriteLine(Properties.Resources.ResourceManager.GetString("badjs"));
+                    }
                     catch (LepException e) { Console.WriteLine(e.Message); }
                 }
             }
+            catch (ParseException e) { Console.WriteLine(e.Message); }
             catch (LepException e) { Console.WriteLine(e.Message); }
-
-            Console.WriteLine(Properties.Resources.ResourceManager.GetString("finish"));
-            Console.ReadLine();
+            finally
+            {
+                Console.WriteLine(Properties.Resources.ResourceManager.GetString("finish"));
+                Console.ReadLine();
+            }
         }
 
         static void OpenNotepad(string filepath)
@@ -94,22 +100,5 @@ namespace Lep
                 if (process.HasExited) process.Kill();
             }
         }
-
-        /*
-        static void TestLexer() { for (Token next; (next = _lexer.Read()) != Token.EOF; ) Console.WriteLine(next.Text); }
-
-        static void TestParser()
-        {
-            while (_lexer.Peek(0) != Token.EOF)
-            {
-                try
-                {
-                    IASTNode tree = _parser.Parse();
-                    Console.WriteLine(tree.ToString());
-                }
-                catch (ParseException e) { Console.WriteLine(e.Message); }
-            }
-        }
-         */
     }
 }

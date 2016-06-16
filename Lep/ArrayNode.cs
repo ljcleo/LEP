@@ -34,7 +34,7 @@ namespace Lep
             {
                 object value = ArrayLength.Evaluate(env);
 
-                if (value is int && (int)value < Count - 1) total = (int)value;
+                if (value is int && (int)value >= Count - 1) total = (int)value;
                 else throw new LepException("bad array length", this);
             }
 

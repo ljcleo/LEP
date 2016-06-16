@@ -23,7 +23,7 @@ namespace Lep
 
         protected object EvaluateFunction(Environment env, UserFunction function)
         {
-            if (function == null) throw new ArgumentNullException(nameof(function), "null function");
+            if (function == null) throw new LepException("internal error: null function", this);
 
             ParameterNode parameters = function.Parameters;
 
@@ -45,7 +45,7 @@ namespace Lep
 
         protected object EvaluateNativeFunction(Environment env, NativeFunction function)
         {
-            if (function == null) throw new ArgumentNullException(nameof(function), "null function");
+            if (function == null) throw new LepException("internal error: null function", this);
 
             int pcount = function.ParametersCount;
 

@@ -2,11 +2,14 @@
 {
     public class Token
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
-        public static readonly Token EndOfFile = new Token(-1);
-        public static readonly string EndOfLine = "\\n";
+        private static readonly Token _eof = new Token(-1);
+        private const string _eoln = "\\n";
 
         private int _line;
+
+        public static Token EndOfFile { get { return _eof; } }
+
+        public static string EndOfLine { get { return _eoln; } }
 
         public int Line { get { return _line; } }
 

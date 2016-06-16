@@ -28,7 +28,7 @@ namespace Lep
 
         public void Evaluate(Environment env, int index, object value)
         {
-            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
+            if (env == null) throw new LepException("internal error: null environment", this);
 
             NameNode name = Parameter(index) as NameNode;
             if (name == null) throw new LepException("bad parameter");

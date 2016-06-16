@@ -15,7 +15,7 @@ namespace Lep
 
         public override object Evaluate(Environment env)
         {
-            if (env == null) throw new ArgumentNullException(nameof(env), "null environment");
+            if (env == null) throw new LepException("internal error: null environment", this);
 
             string prefix = ((AstLeaf)Prefix).Token.Text, name = ((NameNode)((ScopeNameNode)Operand).Name).Name;
             int type = ((ScopeNameNode)Operand).AssignType;

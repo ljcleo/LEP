@@ -19,7 +19,7 @@ namespace Lep
 
         public Tuple(object[] tuple)
         {
-            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null initialize array");
+            if (tuple == null) throw new LepException("null initialize array", new ArgumentNullException(nameof(tuple), "null initialize array"));
 
             _tuple = new object[tuple.Length];
             tuple.CopyTo(_tuple, 0);
@@ -27,7 +27,7 @@ namespace Lep
 
         public Tuple(Tuple tuple)
         {
-            if (tuple == null) throw new ArgumentNullException(nameof(tuple), "null initialize tuple");
+            if (tuple == null) throw new LepException("null initialize array", new ArgumentNullException(nameof(tuple), "null initialize tuple"));
 
             _tuple = new object[tuple.Count];
             tuple.GetArray().CopyTo(_tuple, 0);
@@ -37,7 +37,7 @@ namespace Lep
 
         public static Tuple Add(object left, Tuple right)
         {
-            if (right == null) throw new ArgumentNullException(nameof(right), "null right value");
+            if (right == null) throw new LepException("null right value", new ArgumentNullException(nameof(right), "null right value"));
 
             Tuple result = new Tuple(right.Count + 1);
             result[0] = left;
@@ -48,7 +48,7 @@ namespace Lep
 
         public static Tuple Add(Tuple left, object right)
         {
-            if (left == null) throw new ArgumentNullException(nameof(left), "null left value");
+            if (left == null) throw new LepException("null left value", new ArgumentNullException(nameof(left), "null left value"));
 
             Tuple result = new Tuple(left.Count + 1);
             left.GetArray().CopyTo(result.GetArray(), 0);
@@ -59,8 +59,8 @@ namespace Lep
 
         public static Tuple Add(Tuple left, Tuple right)
         {
-            if (left == null) throw new ArgumentNullException(nameof(left), "null left value");
-            if (right == null) throw new ArgumentNullException(nameof(right), "null right value");
+            if (left == null) throw new LepException("null left value", new ArgumentNullException(nameof(left), "null left value"));
+            if (right == null) throw new LepException("null right value", new ArgumentNullException(nameof(right), "null right value"));
 
             Tuple result = new Tuple(left.Count + right.Count);
             Array.Copy(left.GetArray(), 0, result.GetArray(), 0, left.Count);
