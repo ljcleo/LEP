@@ -109,7 +109,7 @@ namespace Lep
             if (value == null) throw new LepException("null value", new ArgumentNullException(nameof(value), "null value"));
 
             if (value is int) return (int)value;
-            else return int.Parse(value.ToString(), CultureInfo.InvariantCulture);
+            else return Lexer.ParseNumber(value.ToString());
         }
 
         public static int ElapsedTime() { return (int)(DateTime.Now - _startTime).TotalMilliseconds; }
